@@ -102,6 +102,7 @@ class FabCar extends Contract {
         };
 
         await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
         console.info('============= END : Create Car ===========');
     }
 
@@ -132,6 +133,7 @@ class FabCar extends Contract {
                 console.log('end of data');
                 await iterator.close();
                 console.info(allResults);
+                await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify({ hello: "Hello" })));
                 return JSON.stringify(allResults);
             }
         }
@@ -148,6 +150,9 @@ class FabCar extends Contract {
         car.owner = newOwner;
 
         await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
+
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
+        
         console.info('============= END : changeCarOwner ===========');
     }
 

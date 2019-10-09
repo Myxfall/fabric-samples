@@ -1,0 +1,35 @@
+<html>
+<head>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">  
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="container">
+<br>
+<br>
+  <h1>Getting hands dirty</h1>
+  <form>
+    <input type="text" id="message" />
+    <br>
+    <br>
+    <button id="btn">Add New Message</button>
+  </form>
+<div id="received_message"></div>
+</body>
+  <script>
+    $(document).ready(function(){
+	// connect to the server socket
+		 var socket = io('http://127.0.0.1:3000');
+		socket.on('news', function (data) {
+    		$("#received_message").text('>>>> ' + data);
+    //socket.emit('my other event', { my: 'data' });
+  	});
+	// Register handlers
+      $("#btn").click(function(){
+      $.post('/testAPI', {message: $("#message").val()}, (data, status) => {
+		console.log("Message sent");
+      })
+  });
+});
+  </script>
+</html>

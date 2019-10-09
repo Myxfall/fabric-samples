@@ -11,6 +11,7 @@ set -e
 export MSYS_NO_PATHCONV=1
 starttime=$(date +%s)
 CC_SRC_LANGUAGE=${1:-"go"}
+version=$2.0
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 if [ "$CC_SRC_LANGUAGE" = "go" -o "$CC_SRC_LANGUAGE" = "golang"  ]; then
 	CC_RUNTIME_LANGUAGE=golang
@@ -21,6 +22,9 @@ elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
 elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
 	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
 	CC_SRC_PATH=/opt/gopath/src/github.com/chaincode/fabcar/javascript
+elif [ "$CC_SRC_LANGUAGE" = "javascript-low-level" ]; then
+  CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
+  CC_SRC_PATH=/opt/gopath/src/github.com/chaincode/fabcar/javascript-low-level
 elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
 	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
 	CC_SRC_PATH=/opt/gopath/src/github.com/chaincode/fabcar/typescript
@@ -62,7 +66,7 @@ docker exec \
   cli \
   peer chaincode install \
     -n fabcar \
-    -v 1.0 \
+    -v $version \
     -p "$CC_SRC_PATH" \
     -l "$CC_RUNTIME_LANGUAGE"
 
@@ -75,7 +79,7 @@ docker exec \
   cli \
   peer chaincode install \
     -n fabcar \
-    -v 1.0 \
+    -v $version \
     -p "$CC_SRC_PATH" \
     -l "$CC_RUNTIME_LANGUAGE"
 
@@ -88,7 +92,7 @@ docker exec \
   cli \
   peer chaincode install \
     -n fabcar \
-    -v 1.0 \
+    -v $version \
     -p "$CC_SRC_PATH" \
     -l "$CC_RUNTIME_LANGUAGE"
 
@@ -101,7 +105,7 @@ docker exec \
   cli \
   peer chaincode install \
     -n fabcar \
-    -v 1.0 \
+    -v $version \
     -p "$CC_SRC_PATH" \
     -l "$CC_RUNTIME_LANGUAGE"
 
@@ -115,7 +119,7 @@ docker exec \
     -C mychannel \
     -n fabcar \
     -l "$CC_RUNTIME_LANGUAGE" \
-    -v 1.0 \
+    -v $version \
     -c '{"Args":[]}' \
     -P "AND('Org1MSP.member','Org2MSP.member')" \
     --tls \

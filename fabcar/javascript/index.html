@@ -7,29 +7,51 @@
 <body class="container">
 <br>
 <br>
+	<div id="printableArea">
+	  <h1>Print me</h1>
+</div>
+
+
   <h1>Getting hands dirty</h1>
   <form>
-    <input type="text" id="message" />
-    <br>
-    <br>
-    <button id="btn">Add New Message</button>
+	<input type="text" id="message" />
+	<br>
+	<br>
+	<button id="btn">Add New Message</button>
+	<input id="btntwo" type="button" onclick="printDiv('received_message')" value="Add new message">
   </form>
+<div> *******Chat App ********</div>
 <div id="received_message"></div>
 </body>
   <script>
-    $(document).ready(function(){
+
+	function printDiv(divName) {
+		var printContents = document.getElementById(divName)
+		//printContents.innerHTML = "hello wolrd";
+		printContents.innerHTML += '<br> &Tab; >>>> ' + $("#message").val();
+		$('#received_message').css({
+			'background-color': 'red',
+		});
+		
+	};
+
+	$(document).ready(function(){
 	// connect to the server socket
 		 var socket = io('http://127.0.0.1:3000');
 		socket.on('news', function (data) {
-    		$("#received_message").text('>>>> ' + data);
-    //socket.emit('my other event', { my: 'data' });
-  	});
+			console.log(data.toString());
+			var div = document.getElementById('received_message');
+			div.innerHTML += '<br> &Tab; >>>> ' + data;
+			div.style.background="green";
+	});
 	// Register handlers
-      $("#btn").click(function(){
-      $.post('/testAPI', {message: $("#message").val()}, (data, status) => {
-		console.log("Message sent");
-      })
-  });
-});
+	  $("#btntwo").click(function(){ 
+		$.ajax({
+		url: '/send', 
+		type: 'POST', 
+		contentType: 'application/json', 
+		data: JSON.stringify({message: $("#message").val()})}); 
+	  });
+	});
   </script>
 </html>

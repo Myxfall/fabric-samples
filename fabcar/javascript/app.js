@@ -70,13 +70,15 @@ async function addListener() {
 			console.log(`car color: ${event.color}`);
 			console.log(`car model: ${event.model}`);
 			console.log(`car owner: ${event.owner}`);
+			console.log(`User ${event.carNumber} sent ${event.make}`);
 			console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
 			console.log('************************ End Trade Event ************************************');
 
 			console.log('\n---------------->  Event emmited -----> ');
 			console.log("----- Listening Contracts addition -----");
 
-			testSubject.next(`The car ${event.model} ${event.color} owned by ${event.owner} has been added within transaction Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
+			//testSubject.next(`The car ${event.model} ${event.color} owned by ${event.owner} has been added within transaction Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
+			testSubject.next(`User ${event.user} sent the message : ${event.make}`);
 
 		});
 
@@ -214,24 +216,59 @@ async function queryCar() {
 	}
 }
 
+async function sendMessage(message) {
+	try {
+
+		// Create a new file system based wallet for managing identities.
+		const walletPath = path.join(process.cwd(), 'wallet');
+		const wallet = new FileSystemWallet(walletPath);
+		// console.log(`Wallet path: ${walletPath}`);
+
+		// Check to see if we've already enrolled the user.
+		const userExists = await wallet.exists('user1');
+		if (!userExists) {
+			console.log('An identity for the user "user1" does not exist in the wallet');
+			console.log('Run the registerUser.js application before retrying');
+			return;
+		}
+
+		// Create a new gateway for connecting to our peer node.
+		const gateway = new Gateway();
+		await gateway.connect(ccpPath, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+
+		// Get the network (channel) our contract is deployed to.
+		const network = await gateway.getNetwork('mychannel');
+
+		// Get the contract from the network.
+		const contract = network.getContract('fabcar');
+
+		console.log(`\nSending the message ${message} to the blockchain`);
+		await contract.submitTransaction('createCar', 'USER1', message, 'Accord', 'Black', 'Tom');
+
+	} catch (error) {
+		console.error(`Failed to submit transaction: ${error}`);
+		process.exit(1);
+	}
+}
 
 app.use(express.json());
 app.get('/', (req, res) => {
 	res.end(fs.readFileSync('./index.html'));
 });
 
-app.post('/send', (req, res) => {
-	console.log('This is a new message');
-	console.log("---------- END TEST ----------")
-	// Read the message being sent here
-	invokejs.main("new message");
-	res.send('Complete');
-});
-
 app.post('/testAPI', (req, res) => {
 	console.log("\n--------- TEST API ----------\n")
 	queryCars();
 	res.send('Complete');
+});
+
+app.post('/send', (req, res) => {
+    const message = req.body.message;
+    console.log(req.body.message);
+    // Read the message being sent here
+
+    sendMessage(req.body.message);
+    res.send('Complete');
 });
 
 addListener();

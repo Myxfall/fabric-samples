@@ -1,67 +1,49 @@
 'use strict'
 
 const express = require('express');
-const { FileSystemWallet, Gateway } = require('fabric-network');
 let app = require('express')();
 let server = require('http').Server(app);
 let io = require('socket.io')(server);
+const port = 3000;
 
 io.on('hello_server', () => {
 	console.log('Hello received');
 });
-const { uuid } = require('uuid');
-const invokejs = require('./invoke');
-const queryjs = require('./query');
-const path = require('path');
-const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', 'connection-org1.json');
+
+
 const fs = require('fs');
 
 const { range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
 const { map, filter, take, delay, toArray, merge } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 
-const port = 3000;
-
-const subject = new Subject(5);
+const subject = new Subject();
 const obs = new Subject();
 const testSubject = new Subject();
-var counter = 0;
-var carNumber = 100;
-var screenText = "";
+
+// This establishes a connection to a gateway 
+const connectionjs = require('./connection');
+// Get your channel 
+const channeljs = require('./channel');
+// This invokes the smart contracts on hyperledger fabric
+const invokejs = require('./invoke');
 
 async function addListener() {
 	try {
-		// Create a new file system based wallet for managing identities.
-		const walletPath = path.join(process.cwd(), 'wallet');
-		const wallet = new FileSystemWallet(walletPath);
-		// console.log(`Wallet path: ${walletPath}`);
-
-		// Check to see if we've already enrolled the user.
-		const userExists = await wallet.exists('user1');
-		if (!userExists) {
-			console.log('An identity for the user "user1" does not exist in the wallet');
-			console.log('Run the registerUser.js application before retrying');
-			return;
-		}
-
 		// Create a new gateway for connecting to our peer node.
-		const gateway = new Gateway();
-		await gateway.connect(ccpPath, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        gateway = await connectionjs.gatewayConnection('user1');
+        // Get the network (channel) our contract is deployed to.
+        network = await channeljs.getChannel(gateway, 'mychannel');
+        // Get the contract from the network.
+        contract = await channeljs.getContract(network, 'fabcar');
 
-		// Get the network (channel) our contract is deployed to.
-		const network = await gateway.getNetwork('mychannel');
-
-		// Get the contract from the network.
-		const contract = await network.getContract('fabcar');
-
-		console.log('ADDING CONTRACT LISTENER');
 		await contract.addContractListener('listener_message_sent','sent', (err, event, blockNumber, transactionId, status) => {
 			if (err) {
 				console.error(err);
 				return;
 			}
 
-				  //convert event to something we can parse 
+			//convert event to something we can parse 
 			event = event.payload.toString();
 			event = JSON.parse(event)
 
@@ -74,19 +56,26 @@ async function addListener() {
 			console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
 			console.log('************************ End Trade Event ************************************');
 
-			console.log('\n---------------->  Event emmited -----> ');
-			console.log("----- Listening Contracts addition -----");
-
 			//testSubject.next(`The car ${event.model} ${event.color} owned by ${event.owner} has been added within transaction Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
-			testSubject.next(`User ${event.user} sent the message : ${event.make}`);
+			//testSubject.next(`User ${event.user} sent the message : ${event.make}`);
+
+			const data = {
+				user: event.user,
+				message: event.make,
+				status: status,
+			};
+			testSubject.next(Buffer.from(JSON.stringify(data)));
 
 		});
 
 		// ----- RXJS Listening Subjects -----
 		subject.subscribe({
 			next(value) {
-				io.emit('news', value);
-				console.log("submitting value");
+
+				data = JSON.parse(value);
+
+				io.emit('news', data);
+				console.log(`submitting value : ${data.message}`);
 			},
 			error(err) {
 				io.emit('news', err);
@@ -111,7 +100,7 @@ async function addListener() {
 		})
 		testSubject.subscribe(subject);
 
-		const listener = await network.addBlockListener('my-block-listener', (error, block) => {
+		/*const listener = await network.addBlockListener('my-block-listener', (error, block) => {
 			if (error) {
 				console.error(error);
 				return;
@@ -123,7 +112,7 @@ async function addListener() {
 
 			// ---- Send value to RxJS Subject -----
 			//obs.next("Adding new car within block");
-		});
+		});*/
 		// Disconnect from the gateway.
 		//await gateway.disconnect();
 
@@ -217,33 +206,8 @@ async function queryCar() {
 }
 
 async function sendMessage(message) {
-	try {
-
-		// Create a new file system based wallet for managing identities.
-		const walletPath = path.join(process.cwd(), 'wallet');
-		const wallet = new FileSystemWallet(walletPath);
-		// console.log(`Wallet path: ${walletPath}`);
-
-		// Check to see if we've already enrolled the user.
-		const userExists = await wallet.exists('user1');
-		if (!userExists) {
-			console.log('An identity for the user "user1" does not exist in the wallet');
-			console.log('Run the registerUser.js application before retrying');
-			return;
-		}
-
-		// Create a new gateway for connecting to our peer node.
-		const gateway = new Gateway();
-		await gateway.connect(ccpPath, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
-
-		// Get the network (channel) our contract is deployed to.
-		const network = await gateway.getNetwork('mychannel');
-
-		// Get the contract from the network.
-		const contract = network.getContract('fabcar');
-
-		console.log(`\nSending the message ${message} to the blockchain`);
-		await contract.submitTransaction('createCar', 'USER1', message, 'Accord', 'Black', 'Tom');
+	try {		
+		invokejs.main(contract, message);
 
 	} catch (error) {
 		console.error(`Failed to submit transaction: ${error}`);

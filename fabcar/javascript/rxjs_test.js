@@ -1,5 +1,5 @@
 const { range, fromEvent, interval, timer, Subject, from, ReplaySubject} = require("rxjs");
-const { map, filter, take, delay, toArray, merge } = require("rxjs/operators");
+const { map, filter, take, delay, toArray, merge, multicast } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 
 
@@ -59,3 +59,27 @@ obs.subscribe({
 });
 
 obs.next(" from next fun");
+
+
+const source = from([1, 2, 3]);
+const subjectt = new Subject();
+const multicasted = source.pipe(multicast(subjectt));
+
+// These are, under the hood, `subject.subscribe({...})`:
+multicasted.subscribe({
+  next: (v) => console.log(`observerA: ${v}`)
+});
+multicasted.subscribe({
+  next: (v) => console.log(`observerB: ${v}`)
+});
+
+// This is, under the hood, `source.subscribe(subject)`:
+
+
+subjectt.subscribe({
+  next: (v) => console.log(`Got a value after ${v}`)
+})
+multicasted.connect();
+
+
+subjectt.next("GOT IT");

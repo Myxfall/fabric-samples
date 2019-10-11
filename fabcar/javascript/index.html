@@ -41,7 +41,7 @@
 		socket.on('news', function (data) {
 			console.log(data.toString());
 			var div = document.getElementById('received_message');
-			div.innerHTML += '<br> &Tab; >>>> ' + data;
+			div.innerHTML += '<br> &Tab; >>>> ' + data.message;
 			div.style.background="green";
 	});
 	// Register handlers

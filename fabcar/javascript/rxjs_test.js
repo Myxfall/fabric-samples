@@ -1,5 +1,5 @@
 const { range, fromEvent, interval, timer, Subject, from, ReplaySubject} = require("rxjs");
-const { map, filter, take, delay, toArray, merge, multicast } = require("rxjs/operators");
+const { of, map, filter, take, delay, toArray, merge, multicast } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 
 
@@ -83,3 +83,48 @@ multicasted.connect();
 
 
 subjectt.next("GOT IT");
+
+
+console.log("\n----- OBSERVALE STREAM -----");
+
+const streamData = from([1, 2, 3, 4, 5]).pipe(take(3));
+streamData.subscribe({
+    next(x) { console.log(`${x} : obtained in stream`); },
+  error(err) { console.error('something wrong occurred: ' + err); }
+  
+
+});
+
+const streamTestSubject = new ReplaySubject(10);
+streamTestSubject.next(1);
+streamTestSubject.next(2);
+streamTestSubject.next(3);
+streamTestSubject.next(4);
+streamTestSubject.next(5);
+
+streamTestSubject.subscribe({
+    next(x) { console.log('TEST OBS NEXT '+x); },
+  error(err) { console.error('something wrong occurred: ' + err); },
+  complete() { console.log('done'); }
+
+});
+streamTestSubject.pipe(map(x => x * x));
+streamTestSubject.next(6);
+
+
+var x = new ReplaySubject();
+y = x.asObservable();
+
+x.next(0);
+
+x.subscribe({
+	next(x) {console.log(`printing from subject ${x}`)}
+})
+y.subscribe({
+	next(x) {console.log(`printing from observable transformed ${x}`)}
+})
+y.pipe(take(2)).subscribe({
+	next(x) {console.log(`printing after a pipe take 2 ${x}`)}
+})
+
+x.next(1);x.next(2);x.next(3);x.next(4);

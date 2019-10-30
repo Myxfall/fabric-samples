@@ -1,10 +1,8 @@
-const fs = require('fs');
-
 const { range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
 const { map, filter, take, delay, toArray, merge } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 
-const subject = new Subject();
+const subject = new ReplaySubject();
 const obs = new Subject();
 const testSubject = new Subject();
 
@@ -89,7 +87,19 @@ module.exports = {
 				}
 			})
 
-			return [subject, querySubject];
+			const result = await contract.evaluateTransaction('queryAllCars');
+			var result_json = JSON.parse(result.toString());
+			for (var elem in result_json) {
+				const data = {
+					key: result_json[elem]["Key"],
+					message: result_json[elem]["Record"]["make"],
+				};
+				console.log(data);
+				subject.next(Buffer.from(JSON.stringify(data)));
+			}
+
+			getSubject = subject.asObservable();
+			return [getSubject, querySubject];
 
 		} catch (error) {
 			console.error(`Failed to submit transaction: ${error}`);

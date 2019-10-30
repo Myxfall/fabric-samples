@@ -28,6 +28,7 @@ const channeljs = require('./channel');
 const invokejs = require('./invoke');
 
 const reactiveProxyjs = require('./reactiveProxy');
+//import { getProxies } from 'reactiveProxyModule';
 
 var blockchainProxy;
 var queryProxy;

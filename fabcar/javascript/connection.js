@@ -6,15 +6,20 @@ const { FileSystemWallet, Gateway } = require('fabric-network');
 const path = require('path');
 // Resolve a path to our connection file - details not known 
 const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', 'connection-org1.json');
+console.log(ccpPath);
 
 // Helps read the contents of our file system wallet 
-const fs = require('fs');
 module.exports = {
 	gatewayConnection: async function(username) {
 		// try to make a connection
 		try{
 			// Create a new file system based wallet for managing identities.
-	        const walletPath = path.join(process.cwd(), 'wallet');
+	        //const walletPath = path.join(process.cwd(), 'wallet');
+	        console.log(path.resolve(ccpPath, '..','..', 'fabcar', 'javascript', 'wallet'));
+	        const walletPath = path.resolve(ccpPath, '..','..', 'fabcar', 'javascript', 'wallet');
+	        console.log(walletPath);
+	        
+	        
 	        
 	        // Get hold of the fs wallet 
 	        const wallet = new FileSystemWallet(walletPath);

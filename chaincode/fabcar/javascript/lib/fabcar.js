@@ -94,6 +94,7 @@ class FabCar extends Contract {
         console.info('============= START : Create Car ===========');
 
         const car = {
+        	carNumber,
             color,
             docType: 'car',
             make,

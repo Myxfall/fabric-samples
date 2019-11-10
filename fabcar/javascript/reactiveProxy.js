@@ -6,9 +6,9 @@ const subject = new ReplaySubject();
 const obs = new Subject();
 const testSubject = new Subject();
 
-// This establishes a connection to a gateway 
+// This establishes a connection to a gateway
 const connectionjs = require('./connection');
-// Get your channel 
+// Get your channel
 const channeljs = require('./channel');
 // This invokes the smart contracts on hyperledger fabric
 const invokejs = require('./invoke');
@@ -29,12 +29,13 @@ module.exports = {
 					return;
 				}
 
-				//convert event to something we can parse 
+				//convert event to something we can parse
 				event = event.payload.toString();
 				event = JSON.parse(event)
 
 				//where we output the TradeEvent
 				console.log('************************ Start Trade Event ************************************');
+				console.log(`car number: ${event.carNumber}`);
 				console.log(`car color: ${event.color}`);
 				console.log(`car model: ${event.model}`);
 				console.log(`car owner: ${event.owner}`);
@@ -46,7 +47,7 @@ module.exports = {
 				//testSubject.next(`User ${event.user} sent the message : ${event.make}`);
 
 				const data = {
-					user: event.user,
+					user: event.owner,
 					message: event.make,
 					status: status,
 				};
@@ -70,7 +71,7 @@ module.exports = {
 					io.emit('news', "Subject complete");
 				}
 			})
-			
+
 			testSubject.subscribe(subject);
 
 			querySubject = new Subject();

@@ -8,10 +8,15 @@ const channeljs = require('./channel');
 module.exports = {
     main: async function main(contract, make) {
         try {
+            var res_json = JSON.stringify(make);
+            console.log(`Invoke Query with ${res_json}`);
+
+            const {message} = make;
+
             // Submit the specified transaction.
             // createCar transaction - requires 5 argument, ex: ('createCar', 'CAR12', 'Honda', 'Accord', 'Black', 'Tom')
             // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
-            await contract.submitTransaction('createCar', 'USER1', make, 'Accord', 'Black', 'Tom');
+            await contract.submitTransaction('createCar', 'CAR121', message, 'Accord', 'Black', 'Tom');
             //const result = await contract.evaluateTransaction('queryAllCars');
             // await contract.evaluateTransaction("queryCar", "CAR1");
             console.log('Transaction has been submitted');
@@ -25,6 +30,3 @@ module.exports = {
         }
     }
 };
-
-
-

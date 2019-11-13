@@ -1,6 +1,8 @@
 const { range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
 const { map, filter, take, delay, toArray, merge } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
+const util = require('util');
+
 
 const subject = new ReplaySubject();
 const obs = new Subject();
@@ -23,6 +25,35 @@ module.exports = {
 	        // Get the contract from the network.
 	        contract = await channeljs.getContract(network, 'fabcar');
 
+			//our block listener is listening to our channel, and seeing if any blocks are added to our channel
+			const listener = await network.addBlockListener('my-block-listener', (err, block) => {
+		      if (err) {
+		        console.log(err);
+		        return;
+		      }
+
+		      console.log('*************** start block header **********************')
+		      console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
+		      console.log('*************** end block header **********************')
+		      console.log('*************** start block data **********************')
+		      let data = block.data.data[0];
+		      console.log(util.inspect(data, {showHidden: false, depth: 5}))
+		      console.log('*************** end block data **********************')
+		      console.log('*************** start block metadata ****************')
+		      console.log(util.inspect(block.metadata, {showHidden: false, depth: 5}))
+		      console.log('*************** end block metadata ****************')
+
+		  });
+
+		//   const listener = await network.addBlockListener('my-block-listener', (error, block) => {
+        //     if (error) {
+        //         console.error(error);
+        //         return;
+        //     }
+        //     console.log('------- BLOCK LISTENER : NEW BLOCK ADDED ---------------');
+        //     console.log(`Block: ${JSON.stringify(block.data.data)}`);
+        // });
+
 			await contract.addContractListener('listener_message_sent','sent', (err, event, blockNumber, transactionId, status) => {
 				if (err) {
 					console.error(err);
@@ -35,7 +66,7 @@ module.exports = {
 
 				//where we output the TradeEvent
 				console.log('************************ Start Trade Event ************************************');
-				console.log(`car number: ${event.carNumber}`);
+				console.log(`car number: ${event.carNumberBis} or ${event.carNumber} ${event.hello}`);
 				console.log(`car color: ${event.color}`);
 				console.log(`car model: ${event.model}`);
 				console.log(`car owner: ${event.owner}`);

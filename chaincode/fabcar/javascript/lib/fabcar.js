@@ -5,11 +5,12 @@
 'use strict';
 
 const { Contract } = require('fabric-contract-api');
-
+//var counterCar;
 class FabCar extends Contract {
 
     async initLedger(ctx) {
         console.info('============= START : Initialize Ledger ===========');
+        //counterCar = 20;
         const cars = [
             {
                 color: 'blue',
@@ -76,6 +77,7 @@ class FabCar extends Contract {
         for (let i = 0; i < cars.length; i++) {
             cars[i].docType = 'car';
             await ctx.stub.putState('CAR' + i, Buffer.from(JSON.stringify(cars[i])));
+            await ctx.stub.putState('ID', Buffer.from(JSON.stringify({idNumber: 10})));
             console.info('Added <--> ', cars[i]);
         }
         console.info('============= END : Initialize Ledger ===========');
@@ -93,6 +95,10 @@ class FabCar extends Contract {
     async createCar(ctx, carNumber, make, model, color, owner) {
         console.info('============= START : Create Car ===========');
 
+        //var carNumberBis = "CAR" + counterCar;
+        //todo: inc id
+        //NOTES: could just save something in the state which is the counter
+
         const car = {
         	carNumber,
             color,
@@ -101,10 +107,60 @@ class FabCar extends Contract {
             model,
             owner,
         };
-
+        //counterCar = counterCar + 1;
         await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
         await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
         console.info('============= END : Create Car ===========');
+    }
+
+    async createMessage(ctx, carNumber, message, model, color, owner) {
+    	console.info('============= START : Create Message ===========');
+
+    	const counterByte = await ctx.stub.getState('ID'); // get the car from chaincode state
+    	const counterInt = counterByte.toString()["idNumber"];
+    	console.log(counterInt);
+
+
+    	await ctx.stub.putState('ID', Buffer.from(JSON.stringify({idNumber: counterInt.toString()})));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(counterInt)));
+
+        /*const startKey = 'CAR0';
+        const endKey = 'CAR999';
+
+        const iterator = await ctx.stub.getStateByRange(startKey, endKey);
+        console.log(iterator);
+
+        var finalKey = 'CAR0';
+        while (true) {
+            const res = await iterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                console.log(res.value.value.toString('utf8'));
+                const Key = res.value.key;
+
+                if (finalKey < Key) {
+                	finalKey = res.value.key;
+                }
+                
+            }
+            if (res.done) {
+                console.log('end of data');
+                await iterator.close();
+                const car = {
+		        	carNumber: finalKey,
+		            color,
+		            docType: 'car',
+		            make: message,
+		            model,
+		            owner,
+		        };
+		        //counterCar = counterCar + 1;
+		        await ctx.stub.putState(finalKey, Buffer.from(JSON.stringify(car)));
+		        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
+				console.info('============= END : Create Car ===========');
+				return null;
+            }
+        }*/
     }
 
     async queryAllCars(ctx) {
@@ -112,6 +168,7 @@ class FabCar extends Contract {
         const endKey = 'CAR999';
 
         const iterator = await ctx.stub.getStateByRange(startKey, endKey);
+        console.log(iterator);
 
         const allResults = [];
         while (true) {

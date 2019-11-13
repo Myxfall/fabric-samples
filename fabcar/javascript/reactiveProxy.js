@@ -6,7 +6,7 @@ const util = require('util');
 
 const subject = new ReplaySubject();
 const obs = new Subject();
-const testSubject = new Subject();
+const bridgeSubject = new Subject();
 
 // This establishes a connection to a gateway
 const connectionjs = require('./connection');
@@ -74,36 +74,36 @@ module.exports = {
 				console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
 				console.log('************************ End Trade Event ************************************');
 
-				//testSubject.next(`The car ${event.model} ${event.color} owned by ${event.owner} has been added within transaction Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
-				//testSubject.next(`User ${event.user} sent the message : ${event.make}`);
+				//bridgeSubject.next(`The car ${event.model} ${event.color} owned by ${event.owner} has been added within transaction Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
+				//bridgeSubject.next(`User ${event.user} sent the message : ${event.make}`);
 
 				const data = {
 					user: event.owner,
 					message: event.make,
 					status: status,
 				};
-				testSubject.next(Buffer.from(JSON.stringify(data)));
+				bridgeSubject.next(Buffer.from(JSON.stringify(data)));
 
 			});
 
 			// ----- RXJS Listening Subjects -----
 
-			obs.subscribe({
-				async next(value) {
-					var lastCar = await queryCar();
-					console.log("Nexting value to webserve : " + lastCar.toString());
-					//subject.next("Car added within block: " + lastCar.toString());
-					subject.next("Car added with informations : " + value + " \ncar infos :" + lastCar);
-				},
-				error(err) {
-					io.emit('news', err);
-				},
-				complete() {
-					io.emit('news', "Subject complete");
-				}
-			})
+			// obs.subscribe({
+			// 	async next(value) {
+			// 		var lastCar = await queryCar();
+			// 		console.log("Nexting value to webserve : " + lastCar.toString());
+			// 		//subject.next("Car added within block: " + lastCar.toString());
+			// 		subject.next("Car added with informations : " + value + " \ncar infos :" + lastCar);
+			// 	},
+			// 	error(err) {
+			// 		io.emit('news', err);
+			// 	},
+			// 	complete() {
+			// 		io.emit('news', "Subject complete");
+			// 	}
+			// })
 
-			testSubject.subscribe(subject);
+			bridgeSubject.subscribe(subject);
 
 			querySubject = new Subject();
 			querySubject.subscribe({

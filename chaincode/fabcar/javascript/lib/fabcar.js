@@ -70,7 +70,54 @@ class FabCar extends Contract {
                 color: 'brown',
                 make: 'Holden',
                 model: 'Barina',
-                owner: 'Shotaro',
+                owner: 'ITACHISEISEI',
+            },
+        ];
+
+        const diplomas =  [
+            {
+                type: 'diploma',
+                username: 'maxromai',
+                school: 'VUB',
+                study: 'computer_science',
+                first_name: 'Maximilien',
+                last_name: 'Romain',
+            },
+            {
+                type: 'diploma',
+                username: 'rniro',
+                school: 'VUB',
+                study: 'solvay',
+                first_name: 'Robert',
+                last_name: 'DeNiro',
+            },
+            {
+                type: 'diploma',
+                username: 'maxromai',
+                school: 'ParisInstiture',
+                study: 'acting',
+                first_name: 'Enya',
+                last_name: 'Baroux',
+            },
+        ];
+        const grades = [
+            {
+                type: 'grade',
+                username: 'maxromai',
+                school: 'VUB',
+                course: "Declarative_programming",
+                grade: "17",
+                first_name: 'Maximilien',
+                last_name: 'Romain',
+            },
+            {
+                type: 'grade',
+                username: 'maxromai',
+                school: 'VUB',
+                course: "Project_management",
+                grade: "18",
+                first_name: 'Maximilien',
+                last_name: 'Romain',
             },
         ];
 
@@ -79,6 +126,15 @@ class FabCar extends Contract {
             await ctx.stub.putState('CAR' + i, Buffer.from(JSON.stringify(cars[i])));
             await ctx.stub.putState('ID', Buffer.from(JSON.stringify({idNumber: 10})));
             console.info('Added <--> ', cars[i]);
+        }
+
+        for (let i = 0; i < diplomas.length; i++) {
+            await ctx.stub.putState('DIPLOMA' + i, Buffer.from(JSON.stringify(diplomas[i])));
+            console.info('Added <--> ', diplomas[i]);
+        }
+        for (let i = 0; i < grades.length; i++) {
+            await ctx.stub.putState('GRADE' + i, Buffer.from(JSON.stringify(grades[i])));
+            console.info('Added <--> ', grades[i]);
         }
         console.info('============= END : Initialize Ledger ===========');
     }
@@ -141,7 +197,7 @@ class FabCar extends Contract {
                 if (finalKey < Key) {
                 	finalKey = res.value.key;
                 }
-                
+
             }
             if (res.done) {
                 console.log('end of data');
@@ -197,6 +253,41 @@ class FabCar extends Contract {
         }
     }
 
+    async queryAllData(ctx) {
+        const startDiploma = 'DIPLOMA0';
+        const endDiploma = 'DIPLOMA20';
+        const startGrade = 'GRADE0';
+        const endGrade = 'GRADE20';
+
+        const iterator = await ctx.stub.getStateByRange("", "");
+
+        const allResults = [];
+        while (true) {
+            const res = await iterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                console.log(res.value.value.toString('utf8'));
+
+                const Key = res.value.key;
+                let Record;
+                try {
+                    Record = JSON.parse(res.value.value.toString('utf8'));
+                } catch (err) {
+                    console.log(err);
+                    Record = res.value.value.toString('utf8');
+                }
+                allResults.push({ Key, Record });
+            }
+            if (res.done) {
+                console.log('end of data');
+                await iterator.close();
+                console.info(allResults);
+                await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify({ hello: "Hello" })));
+                return JSON.stringify(allResults);
+            }
+        }
+    }
+
     async changeCarOwner(ctx, carNumber, newOwner) {
         console.info('============= START : changeCarOwner ===========');
 
@@ -210,7 +301,7 @@ class FabCar extends Contract {
         await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
 
         await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
-        
+
         console.info('============= END : changeCarOwner ===========');
     }
 

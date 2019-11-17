@@ -38,7 +38,9 @@ async function main() {
         // Submit the specified transaction.
         // createCar transaction - requires 5 argument, ex: ('createCar', 'CAR12', 'Honda', 'Accord', 'Black', 'Tom')
         // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
-        await contract.submitTransaction('createCar', 'CAR120', 'FERRARIIIIIIIIII', 'Accord', 'Black', 'Makkes');
+        //await contract.submitTransaction('createCar', 'CAR30', 'WHAAAAT', 'Accord', 'Black', 'MAXIUUUU');
+        await contract.submitTransaction('createMessage', 'CAR99', 'OOOOOOOOOOOOOO', 'Accord', 'Black', 'TESTOWNER');
+        //await contract.submitTransaction('changeCarOwner', 'CAR10', 'SATAN');
         //await contract.submitTransaction('changeCarOwner', 'CAR12', 'Tom');
         console.log('Transaction has been submitted');
 

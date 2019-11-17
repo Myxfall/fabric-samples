@@ -119,12 +119,12 @@ module.exports = {
 				}
 			})
 
-			const result = await contract.evaluateTransaction('queryAllCars');
+			const result = await contract.evaluateTransaction('queryAllData');
 			var result_json = JSON.parse(result.toString());
 			for (var elem in result_json) {
 				const data = {
 					key: result_json[elem]["Key"],
-					message: result_json[elem]["Record"]["make"],
+					record: result_json[elem]["Record"],
 				};
 				console.log(data);
 				subject.next(Buffer.from(JSON.stringify(data)));

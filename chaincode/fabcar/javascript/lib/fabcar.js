@@ -124,7 +124,6 @@ class FabCar extends Contract {
         for (let i = 0; i < cars.length; i++) {
             cars[i].docType = 'car';
             await ctx.stub.putState('CAR' + i, Buffer.from(JSON.stringify(cars[i])));
-            await ctx.stub.putState('ID', Buffer.from(JSON.stringify({idNumber: 10})));
             console.info('Added <--> ', cars[i]);
         }
 
@@ -136,6 +135,12 @@ class FabCar extends Contract {
             await ctx.stub.putState('GRADE' + i, Buffer.from(JSON.stringify(grades[i])));
             console.info('Added <--> ', grades[i]);
         }
+        const ids_json = {
+            idCars: 10,
+            idDiplomas: 3,
+            idGrades: 2,
+        };
+        await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(ids_json)));
         console.info('============= END : Initialize Ledger ===========');
     }
 

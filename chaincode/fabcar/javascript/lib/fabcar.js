@@ -174,6 +174,22 @@ class FabCar extends Contract {
         console.info('============= END : Create Car ===========');
     }
 
+    async createDiploma(ctx, diplomaId, username, school, study, first_name, last_name) {
+        console.info('============= START : Create Diploma ===========');
+
+        const newDiploma = {
+            type: 'diploma',
+            username: username,
+            school: school,
+            study: study,
+            first_name: first_name,
+            last_name: last_name,
+        };
+        await ctx.stub.putState(diplomaId, Buffer.from(JSON.stringify(newDiploma)));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(newDiploma)));
+        console.info('============= END : Create Diploma ===========');
+    }
+
     async createMessage(ctx, carNumber, message, model, color, owner) {
     	console.info('============= START : Create Message ===========');
 

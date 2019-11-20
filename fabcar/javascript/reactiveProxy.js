@@ -32,16 +32,16 @@ module.exports = {
 		        return;
 		      }
 
-		      console.log('*************** start block header **********************')
+		      console.log('\n*************** start block header **********************')
 		      console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
-		      console.log('*************** end block header **********************')
-		      console.log('*************** start block data **********************')
-		      let data = block.data.data[0];
-		      console.log(util.inspect(data, {showHidden: false, depth: 5}))
-		      console.log('*************** end block data **********************')
-		      console.log('*************** start block metadata ****************')
-		      console.log(util.inspect(block.metadata, {showHidden: false, depth: 5}))
-		      console.log('*************** end block metadata ****************')
+		      console.log('*************** end block header **********************\n')
+		      // console.log('*************** start block data **********************')
+		      // let data = block.data.data[0];
+		      // console.log(util.inspect(data, {showHidden: false, depth: 5}))
+		      // console.log('*************** end block data **********************')
+		      // console.log('*************** start block metadata ****************')
+		      // console.log(util.inspect(block.metadata, {showHidden: false, depth: 5}))
+		      // console.log('*************** end block metadata ****************')
 
 		  });
 
@@ -65,23 +65,58 @@ module.exports = {
 				event = JSON.parse(event)
 
 				//where we output the TradeEvent
-				console.log('************************ Start Trade Event ************************************');
-				console.log(`car number: ${event.carNumberBis} or ${event.carNumber} ${event.hello}`);
-				console.log(`car color: ${event.color}`);
-				console.log(`car model: ${event.model}`);
-				console.log(`car owner: ${event.owner}`);
-				console.log(`User ${event.carNumber} sent ${event.make}`);
+				// console.log('************************ Start Trade Event ************************************');
+				// console.log(`car number: ${event.carNumberBis} or ${event.carNumber} ${event.hello}`);
+				// console.log(`car color: ${event.color}`);
+				// console.log(`car model: ${event.model}`);
+				// console.log(`car owner: ${event.owner}`);
+				// console.log(`User ${event.carNumber} sent ${event.make}`);
+				// console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
+				// console.log('************************ End Trade Event ************************************');
+
+				console.log(`\n************************************ Start Trade Event ************************************`);
+
+				var data = null;
+				switch (event.type) {
+					case 'diploma':
+						console.log(`type: ${event.type}`);
+						console.log(`username: ${event.username}`);
+						console.log(`school: ${event.school}`);
+						console.log(`study: ${event.study}`);
+						console.log(`first name: ${event.first_name}`);
+						console.log(`last name: ${event.last_name}`);
+
+						data = {
+				            type: event.type,
+				            username: event.username,
+				            school: event.school,
+				            study: event.study,
+				            first_name: event.first_name,
+				            last_name: event.last_name,
+							status: status,
+							blockNumber,
+							transactionId,
+				        };
+
+						break;
+					case 'grade':
+							console.log(`type: ${event.type}`);
+							console.log(`username: ${event.username}`);
+							console.log(`school: ${event.school}`);
+							console.log(`course: ${event.course}`);
+							console.log(`first name: ${event.first_name}`);
+							console.log(`grade: ${event.grade}`);
+							console.log(`last name: ${event.last_name}`);
+						break;
+				}
+
 				console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
-				console.log('************************ End Trade Event ************************************');
+				console.log('************************************ End Trade Event ************************************\n');
+
 
 				//bridgeSubject.next(`The car ${event.model} ${event.color} owned by ${event.owner} has been added within transaction Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
 				//bridgeSubject.next(`User ${event.user} sent the message : ${event.make}`);
 
-				const data = {
-					user: event.owner,
-					message: event.make,
-					status: status,
-				};
 				bridgeSubject.next(Buffer.from(JSON.stringify(data)));
 
 			});

@@ -19,40 +19,40 @@ module.exports = {
 	getProxies: async function() {
 		try {
 			// Create a new gateway for connecting to our peer node.
-	        gateway = await connectionjs.gatewayConnection('user1');
-	        // Get the network (channel) our contract is deployed to.
-	        network = await channeljs.getChannel(gateway, 'mychannel');
-	        // Get the contract from the network.
-	        contract = await channeljs.getContract(network, 'fabcar');
+			gateway = await connectionjs.gatewayConnection('user1');
+			// Get the network (channel) our contract is deployed to.
+			network = await channeljs.getChannel(gateway, 'mychannel');
+			// Get the contract from the network.
+			contract = await channeljs.getContract(network, 'fabcar');
 
 			//our block listener is listening to our channel, and seeing if any blocks are added to our channel
 			const listener = await network.addBlockListener('my-block-listener', (err, block) => {
-		      if (err) {
-		        console.log(err);
-		        return;
-		      }
+				if (err) {
+					console.log(err);
+					return;
+				}
 
-		      console.log('\n*************** start block header **********************')
-		      console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
-		      console.log('*************** end block header **********************\n')
-		      // console.log('*************** start block data **********************')
-		      // let data = block.data.data[0];
-		      // console.log(util.inspect(data, {showHidden: false, depth: 5}))
-		      // console.log('*************** end block data **********************')
-		      // console.log('*************** start block metadata ****************')
-		      // console.log(util.inspect(block.metadata, {showHidden: false, depth: 5}))
-		      // console.log('*************** end block metadata ****************')
+				console.log('\n*************** start block header **********************')
+				console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
+				console.log('*************** end block header **********************\n')
+				// console.log('*************** start block data **********************')
+				// let data = block.data.data[0];
+				// console.log(util.inspect(data, {showHidden: false, depth: 5}))
+				// console.log('*************** end block data **********************')
+				// console.log('*************** start block metadata ****************')
+				// console.log(util.inspect(block.metadata, {showHidden: false, depth: 5}))
+				// console.log('*************** end block metadata ****************')
 
-		  });
+			});
 
-		//   const listener = await network.addBlockListener('my-block-listener', (error, block) => {
-        //     if (error) {
-        //         console.error(error);
-        //         return;
-        //     }
-        //     console.log('------- BLOCK LISTENER : NEW BLOCK ADDED ---------------');
-        //     console.log(`Block: ${JSON.stringify(block.data.data)}`);
-        // });
+			//   const listener = await network.addBlockListener('my-block-listener', (error, block) => {
+			//     if (error) {
+			//         console.error(error);
+			//         return;
+			//     }
+			//     console.log('------- BLOCK LISTENER : NEW BLOCK ADDED ---------------');
+			//     console.log(`Block: ${JSON.stringify(block.data.data)}`);
+			// });
 
 			await contract.addContractListener('listener_message_sent','sent', (err, event, blockNumber, transactionId, status) => {
 				if (err) {
@@ -79,35 +79,38 @@ module.exports = {
 				var data = null;
 				switch (event.type) {
 					case 'diploma':
-						console.log(`type: ${event.type}`);
-						console.log(`username: ${event.username}`);
-						console.log(`school: ${event.school}`);
-						console.log(`study: ${event.study}`);
-						console.log(`first name: ${event.first_name}`);
-						console.log(`last name: ${event.last_name}`);
+					console.log(`type: ${event.type}`);
+					console.log(`username: ${event.username}`);
+					console.log(`school: ${event.school}`);
+					console.log(`study: ${event.study}`);
+					console.log(`first name: ${event.first_name}`);
+					console.log(`last name: ${event.last_name}`);
 
-						data = {
-				            type: event.type,
-				            username: event.username,
-				            school: event.school,
-				            study: event.study,
-				            first_name: event.first_name,
-				            last_name: event.last_name,
+					data = {
+						key:"random",
+						record:{
+							type: event.type,
+							username: event.username,
+							school: event.school,
+							study: event.study,
+							first_name: event.first_name,
+							last_name: event.last_name,
 							status: status,
 							blockNumber,
 							transactionId,
-				        };
-
-						break;
+						}
+					};
+					break;
+					
 					case 'grade':
-							console.log(`type: ${event.type}`);
-							console.log(`username: ${event.username}`);
-							console.log(`school: ${event.school}`);
-							console.log(`course: ${event.course}`);
-							console.log(`first name: ${event.first_name}`);
-							console.log(`grade: ${event.grade}`);
-							console.log(`last name: ${event.last_name}`);
-						break;
+					console.log(`type: ${event.type}`);
+					console.log(`username: ${event.username}`);
+					console.log(`school: ${event.school}`);
+					console.log(`course: ${event.course}`);
+					console.log(`first name: ${event.first_name}`);
+					console.log(`grade: ${event.grade}`);
+					console.log(`last name: ${event.last_name}`);
+					break;
 				}
 
 				console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);

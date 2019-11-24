@@ -1,0 +1,21 @@
+Running start.sh script with version 2.17
+Someting running version test script 
+Ran with version 2.27Running start.sh script with version 2.27
+Running start.sh script with version 2.27
+Running start.sh script with version 2.27
+Running start.sh script with version 2.28
+Running start.sh script with version 2.28
+Running start.sh script with version 2.29
+Running start.sh script with version 2.29
+Running start.sh script with version 2.30
+Running start.sh script with version 2.30
+Running start.sh script with version 2.31
+Running start.sh script with version 2.32
+Running start.sh script with version 2.33
+Running start.sh script with version 2.34
+Running start.sh script with version 2.35
+Running start.sh script with version 2.36
+Running start.sh script with version 2.37
+Running start.sh script with version 2.40
+Running start.sh script with version 2.40
+Running start.sh script with version 2.41

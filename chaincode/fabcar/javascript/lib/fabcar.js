@@ -14,7 +14,7 @@ class FabCar extends Contract {
         const cars = [
             {
                 color: 'blue',
-                make: 'Toyota', 
+                make: 'Toyota',
                 model: 'Prius',
                 owner: 'Tomoko',
             },
@@ -174,6 +174,32 @@ class FabCar extends Contract {
         console.info('============= END : Create Car ===========');
     }
 
+    async idIncremental(ctx, data_type) {
+        console.info('============= START : TESING ID INC ===========');
+
+        const idsAsBytes = await ctx.stub.getState('IDS');
+        console.log(idsAsBytes.toString());
+
+        const ids_json = JSON.parse(idsAsBytes.toString());
+
+        var new_ids = ids_json;
+        switch (data_type) {
+            case 'diploma':
+                new_ids.idDiplomas = new_ids.idDiplomas + 1;
+                break;
+            case 'grade':
+                new_ids.idGrades = new_ids.idGrades + 1;
+                break;
+        }
+
+        console.log(new_ids.toString());
+
+        await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(new_ids)));
+
+        console.info('============= END : TESING ID INC ===========');
+
+    }
+
     async createDiploma(ctx, diplomaId, username, school, study, first_name, last_name) {
         console.info('============= START : Create Diploma ===========');
 
@@ -195,6 +221,9 @@ class FabCar extends Contract {
         // };
         // console.log(`New IDS to blockchain is ${new_IDS.toString()}`);
         // await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(new_IDS)));
+
+        this.idIncremental(ctx, 'diploma');
+
         console.log("GOT UPGRADED, THIS IS FINAL VERSION");
         const newDiploma = {
             type: 'diploma',

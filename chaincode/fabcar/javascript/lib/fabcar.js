@@ -137,8 +137,8 @@ class FabCar extends Contract {
         }
         const ids_json = {
             idCars: 10,
-            idDiplomas: 3,
-            idGrades: 2,
+            idDiplomas: 5,
+            idGrades: 3,
         };
         await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(ids_json)));
         console.info('============= END : Initialize Ledger ===========');
@@ -183,12 +183,15 @@ class FabCar extends Contract {
         const ids_json = JSON.parse(idsAsBytes.toString());
 
         var new_ids = ids_json;
+        var new_id;
         switch (data_type) {
             case 'diploma':
                 new_ids.idDiplomas = new_ids.idDiplomas + 1;
+                new_id = new_ids.idDiplomas;
                 break;
             case 'grade':
                 new_ids.idGrades = new_ids.idGrades + 1;
+                new_id = new_ids.idGrades;
                 break;
         }
 
@@ -197,6 +200,7 @@ class FabCar extends Contract {
         await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(new_ids)));
 
         console.info('============= END : TESING ID INC ===========');
+        return new_id;
 
     }
 
@@ -222,7 +226,7 @@ class FabCar extends Contract {
         // console.log(`New IDS to blockchain is ${new_IDS.toString()}`);
         // await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(new_IDS)));
 
-        this.idIncremental(ctx, 'diploma');
+        const newDiplomaId = await this.idIncremental(ctx, 'diploma');
 
         console.log("GOT UPGRADED, THIS IS FINAL VERSION");
         const newDiploma = {
@@ -233,7 +237,7 @@ class FabCar extends Contract {
             first_name: first_name,
             last_name: last_name,
         };
-        await ctx.stub.putState(diplomaId, Buffer.from(JSON.stringify(newDiploma)));
+        await ctx.stub.putState('DIPLOMA'+newDiplomaId, Buffer.from(JSON.stringify(newDiploma)));
         await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(newDiploma)));
         console.info('============= END : Create Diploma ===========');
     }

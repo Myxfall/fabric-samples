@@ -170,6 +170,7 @@ let Chaincode = class {
         console.log('end of data');
         await iterator.close();
         console.info(allResults);
+        await stub.setEvent("sent", Buffer.from(JSON.stringify({ hello: "Hello" })))
         return Buffer.from(JSON.stringify(allResults));
       }
     }

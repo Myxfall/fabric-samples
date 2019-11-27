@@ -5,11 +5,12 @@
 'use strict';
 
 const { Contract } = require('fabric-contract-api');
-
+//var counterCar;
 class FabCar extends Contract {
 
     async initLedger(ctx) {
         console.info('============= START : Initialize Ledger ===========');
+        //counterCar = 20;
         const cars = [
             {
                 color: 'blue',
@@ -69,7 +70,54 @@ class FabCar extends Contract {
                 color: 'brown',
                 make: 'Holden',
                 model: 'Barina',
-                owner: 'Shotaro',
+                owner: 'ITACHISEISEI',
+            },
+        ];
+
+        const diplomas =  [
+            {
+                type: 'diploma',
+                username: 'maxromai',
+                school: 'VUB',
+                study: 'computer_science',
+                first_name: 'Maximilien',
+                last_name: 'Romain',
+            },
+            {
+                type: 'diploma',
+                username: 'rniro',
+                school: 'VUB',
+                study: 'solvay',
+                first_name: 'Robert',
+                last_name: 'DeNiro',
+            },
+            {
+                type: 'diploma',
+                username: 'maxromai',
+                school: 'ParisInstiture',
+                study: 'acting',
+                first_name: 'Enya',
+                last_name: 'Baroux',
+            },
+        ];
+        const grades = [
+            {
+                type: 'grade',
+                username: 'maxromai',
+                school: 'VUB',
+                course: "Declarative_programming",
+                grade: "17",
+                first_name: 'Maximilien',
+                last_name: 'Romain',
+            },
+            {
+                type: 'grade',
+                username: 'maxromai',
+                school: 'VUB',
+                course: "Project_management",
+                grade: "18",
+                first_name: 'Maximilien',
+                last_name: 'Romain',
             },
         ];
 
@@ -78,6 +126,21 @@ class FabCar extends Contract {
             await ctx.stub.putState('CAR' + i, Buffer.from(JSON.stringify(cars[i])));
             console.info('Added <--> ', cars[i]);
         }
+
+        for (let i = 0; i < diplomas.length; i++) {
+            await ctx.stub.putState('DIPLOMA' + i, Buffer.from(JSON.stringify(diplomas[i])));
+            console.info('Added <--> ', diplomas[i]);
+        }
+        for (let i = 0; i < grades.length; i++) {
+            await ctx.stub.putState('GRADE' + i, Buffer.from(JSON.stringify(grades[i])));
+            console.info('Added <--> ', grades[i]);
+        }
+        const ids_json = {
+            idCars: 10,
+            idDiplomas: 3,
+            idGrades: 2,
+        };
+        await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(ids_json)));
         console.info('============= END : Initialize Ledger ===========');
     }
 
@@ -93,16 +156,124 @@ class FabCar extends Contract {
     async createCar(ctx, carNumber, make, model, color, owner) {
         console.info('============= START : Create Car ===========');
 
+        //var carNumberBis = "CAR" + counterCar;
+        //todo: inc id
+        //NOTES: could just save something in the state which is the counter
+
         const car = {
+        	carNumber,
             color,
             docType: 'car',
             make,
             model,
             owner,
         };
-
+        //counterCar = counterCar + 1;
         await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
         console.info('============= END : Create Car ===========');
+    }
+
+    async createDiploma(ctx, diplomaId, username, school, study, first_name, last_name) {
+        console.info('============= START : Create Diploma ===========');
+
+        // const IDS_bytes = await ctx.stub.getState('IDS'); // get the car from chaincode state
+        // const IDS_String = IDS_bytes.toString();
+        // const IDS_Json = JSON.parse(IDS_String);
+        //
+        // console.log("Priting IDS as different objets");
+        // console.log(IDS_String);
+        // console.log(IDS_Json);
+        //
+        // const idDiplomas = IDS_Json.idDiplomas;
+        // console.log(`Got id diplomas with ${idDiplomas} while id from client is ${diplomaId}`);
+        //
+        // const new_IDS = {
+        //     idCars: IDS_Json.idCars,
+        //     idDiplomas: idDiplomas++,
+        //     idGrades: idGrades,
+        // };
+        // console.log(`New IDS to blockchain is ${new_IDS.toString()}`);
+        // await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(new_IDS)));
+        console.log("GOT UPGRADED, THIS IS FINAL VERSION");
+        const newDiploma = {
+            type: 'diploma',
+            username: username,
+            school: school,
+            study: study,
+            first_name: first_name,
+            last_name: last_name,
+        };
+        await ctx.stub.putState(diplomaId, Buffer.from(JSON.stringify(newDiploma)));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(newDiploma)));
+        console.info('============= END : Create Diploma ===========');
+    }
+
+    async createGrade(ctx, gradeId, username, school, course, grade, first_name, last_name) {
+        console.info('============= START : Create Grade ===========');
+
+        const newGrade = {
+            type: 'grade',
+            username: username,
+            school: school,
+            course: course,
+            grade: grade,
+            first_name: first_name,
+            last_name: last_name,
+        };
+        await ctx.stub.putState(gradeId, Buffer.from(JSON.stringify(newGrade)));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(newGrade)));
+        console.info('============= END : Create Grade ===========');
+    }
+
+    async createMessage(ctx, carNumber, message, model, color, owner) {
+    	console.info('============= START : Create Message ===========');
+
+    	const counterByte = await ctx.stub.getState('ID'); // get the car from chaincode state
+    	const counterInt = counterByte.toString()["idNumber"];
+    	console.log(counterInt);
+
+
+    	await ctx.stub.putState('ID', Buffer.from(JSON.stringify({idNumber: counterInt.toString()})));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(counterInt)));
+
+        /*const startKey = 'CAR0';
+        const endKey = 'CAR999';
+
+        const iterator = await ctx.stub.getStateByRange(startKey, endKey);
+        console.log(iterator);
+
+        var finalKey = 'CAR0';
+        while (true) {
+            const res = await iterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                console.log(res.value.value.toString('utf8'));
+                const Key = res.value.key;
+
+                if (finalKey < Key) {
+                	finalKey = res.value.key;
+                }
+
+            }
+            if (res.done) {
+                console.log('end of data');
+                await iterator.close();
+                const car = {
+		        	carNumber: finalKey,
+		            color,
+		            docType: 'car',
+		            make: message,
+		            model,
+		            owner,
+		        };
+		        //counterCar = counterCar + 1;
+		        await ctx.stub.putState(finalKey, Buffer.from(JSON.stringify(car)));
+		        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
+				console.info('============= END : Create Car ===========');
+				return null;
+            }
+        }*/
     }
 
     async queryAllCars(ctx) {
@@ -110,6 +281,7 @@ class FabCar extends Contract {
         const endKey = 'CAR999';
 
         const iterator = await ctx.stub.getStateByRange(startKey, endKey);
+        console.log(iterator);
 
         const allResults = [];
         while (true) {
@@ -132,6 +304,42 @@ class FabCar extends Contract {
                 console.log('end of data');
                 await iterator.close();
                 console.info(allResults);
+                await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify({ hello: "Hello" })));
+                return JSON.stringify(allResults);
+            }
+        }
+    }
+
+    async queryAllData(ctx) {
+        const startDiploma = 'DIPLOMA0';
+        const endDiploma = 'DIPLOMA20';
+        const startGrade = 'GRADE0';
+        const endGrade = 'GRADE20';
+
+        const iterator = await ctx.stub.getStateByRange("", "");
+
+        const allResults = [];
+        while (true) {
+            const res = await iterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                console.log(res.value.value.toString('utf8'));
+
+                const Key = res.value.key;
+                let Record;
+                try {
+                    Record = JSON.parse(res.value.value.toString('utf8'));
+                } catch (err) {
+                    console.log(err);
+                    Record = res.value.value.toString('utf8');
+                }
+                allResults.push({ Key, Record });
+            }
+            if (res.done) {
+                console.log('end of data');
+                await iterator.close();
+                console.info(allResults);
+                await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify({ hello: "Hello" })));
                 return JSON.stringify(allResults);
             }
         }
@@ -148,6 +356,9 @@ class FabCar extends Contract {
         car.owner = newOwner;
 
         await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
+
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
+
         console.info('============= END : changeCarOwner ===========');
     }
 

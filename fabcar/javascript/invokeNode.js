@@ -35,15 +35,20 @@ async function main() {
         // Get the contract from the network.
         const contract = network.getContract('fabcar');
 
-        // Evaluate the specified transaction.
-        // queryCar transaction - requires 1 argument, ex: ('queryCar', 'CAR4')
-        // queryAllCars transaction - requires no arguments, ex: ('queryAllCars')
-        const result = await contract.evaluateTransaction('queryAllData');
-        console.log(`Transaction has been evaluated, result is: `);
-        console.log(JSON.parse(result.toString()));
+        // Submit the specified transaction.
+        // createCar transaction - requires 5 argument, ex: ('createCar', 'CAR12', 'Honda', 'Accord', 'Black', 'Tom')
+        // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
+        //await contract.submitTransaction('createCar', 'CAR30', 'WHAAAAT', 'Accord', 'Black', 'MAXIUUUU');
+        await contract.submitTransaction('createMessage', 'CAR99', 'OOOOOOOOOOOOOO', 'Accord', 'Black', 'TESTOWNER');
+        //await contract.submitTransaction('changeCarOwner', 'CAR10', 'SATAN');
+        //await contract.submitTransaction('changeCarOwner', 'CAR12', 'Tom');
+        console.log('Transaction has been submitted');
+
+        // Disconnect from the gateway.
+        await gateway.disconnect();
 
     } catch (error) {
-        console.error(`Failed to evaluate transaction: ${error}`);
+        console.error(`Failed to submit transaction: ${error}`);
         process.exit(1);
     }
 }

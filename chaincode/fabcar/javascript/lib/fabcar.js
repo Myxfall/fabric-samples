@@ -14,7 +14,7 @@ class FabCar extends Contract {
         const cars = [
             {
                 color: 'blue',
-                make: 'Toyota',
+                make: 'Toyota', 
                 model: 'Prius',
                 owner: 'Tomoko',
             },

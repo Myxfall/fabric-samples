@@ -16,8 +16,13 @@ module.exports = {
             // Submit the specified transaction.
             // createCar transaction - requires 5 argument, ex: ('createCar', 'CAR12', 'Honda', 'Accord', 'Black', 'Tom')
             // changeCarOwner transaction - requires 2 args , ex: ('changeCarOwner', 'CAR10', 'Dave')
-            //const tx_data = await contract.submitTransaction('createCar', 'CAR121', message, 'Accord', 'Black', 'Tom');
-            const tx_data = await contract.submitTransaction('createDiploma', 'DIPLOMA'+diplomaId, username, school, study, first_name, last_name);
+
+            //const tx_data = await contract.submitTransaction('createCar', 'CAR55', res_json, 'Accord', 'Black', 'Tom');
+
+            //const tx_data = await contract.submitTransaction('createDiploma', 'DIPLOMA'+diplomaId, username, school, study, first_name, last_name);
+
+            const tx_data = await contract.submitTransaction('createRecord', res_json);
+
             //const result = await contract.evaluateTransaction('queryAllCars');
             // await contract.evaluateTransaction("queryCar", "CAR1");
             console.log('Transaction has been submitted');

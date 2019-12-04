@@ -139,6 +139,7 @@ class FabCar extends Contract {
             idCars: 10,
             idDiplomas: 5,
             idGrades: 3,
+            idModular: 1,
         };
         await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(ids_json)));
         console.info('============= END : Initialize Ledger ===========');
@@ -160,17 +161,22 @@ class FabCar extends Contract {
         //todo: inc id
         //NOTES: could just save something in the state which is the counter
 
+        console.info("------ TEST JSON OBJECT IN CHAINCODE -----");
+        console.info(make);
+        const testJson = JSON.parse(make);
+        console.info(testJson);
+
         const car = {
         	carNumber,
             color,
             docType: 'car',
-            make,
+            make:"TESTCAR",
             model,
             owner,
         };
         //counterCar = counterCar + 1;
-        await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(car)));
-        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(car)));
+        await ctx.stub.putState(carNumber, Buffer.from(JSON.stringify(testJson)));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(testJson)));
         console.info('============= END : Create Car ===========');
     }
 
@@ -193,6 +199,10 @@ class FabCar extends Contract {
                 new_ids.idGrades = new_ids.idGrades + 1;
                 new_id = new_ids.idGrades;
                 break;
+            case 'modular':
+                new_ids.idModular = new_ids.idModular + 1;
+                new_id = new_ids.idModular;
+                break;
         }
 
         console.log(new_ids.toString());
@@ -200,8 +210,23 @@ class FabCar extends Contract {
         await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(new_ids)));
 
         console.info('============= END : TESING ID INC ===========');
-        return new_id;
 
+        return new_id;
+    }
+
+    async createRecord(ctx, new_record) {
+        console.info('============= START : Create New Academic Record ===========');
+
+        const newModularId = await this.idIncremental(ctx, 'modular');
+
+        const new_record_JSON = JSON.parse(new_record);
+        console.info("Pushing new data to Academic ledger");
+        console.info(new_record_JSON);
+
+        await ctx.stub.putState('MODULAR' + newModularId, Buffer.from(JSON.stringify(new_record_JSON)));
+        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(new_record_JSON)));
+
+        console.info('============= END : Create New Academic Record ===========');
     }
 
     async createDiploma(ctx, diplomaId, username, school, study, first_name, last_name) {

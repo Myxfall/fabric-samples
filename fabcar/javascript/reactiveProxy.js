@@ -101,16 +101,32 @@ module.exports = {
 						}
 					};
 					break;
-					
+
 					case 'grade':
-					console.log(`type: ${event.type}`);
-					console.log(`username: ${event.username}`);
-					console.log(`school: ${event.school}`);
-					console.log(`course: ${event.course}`);
-					console.log(`first name: ${event.first_name}`);
-					console.log(`grade: ${event.grade}`);
-					console.log(`last name: ${event.last_name}`);
-					break;
+						console.log(`type: ${event.type}`);
+						console.log(`username: ${event.username}`);
+						console.log(`school: ${event.school}`);
+						console.log(`course: ${event.course}`);
+						console.log(`first name: ${event.first_name}`);
+						console.log(`grade: ${event.grade}`);
+						console.log(`last name: ${event.last_name}`);
+
+						data = {
+							key:"random",
+							record:{
+								type: event.type,
+								username: event.username,
+								school: event.school,
+								course: event.course,
+								grade: event.grade,
+								first_name: event.first_name,
+								last_name: event.last_name,
+								status: status,
+								blockNumber,
+								transactionId,
+							}
+						};
+						break;
 				}
 
 				console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);

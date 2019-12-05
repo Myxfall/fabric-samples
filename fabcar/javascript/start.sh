@@ -29,5 +29,11 @@ elif [ "$command" = "upgrade" ]; then
 
     ./startFabric.sh javascript $version upgrade
 
+    echo "Finished - Preparing Blockchain network"
+    # cd javascript
+    # rm -r wallet/
 
+    # echo "Creating Admin & User"
+    # node enrollAdmin.js
+    # node registerUser.js
 fi

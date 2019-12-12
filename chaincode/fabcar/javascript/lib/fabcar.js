@@ -229,31 +229,11 @@ class FabCar extends Contract {
         console.info('============= END : Create New Academic Record ===========');
     }
 
-    async createDiploma(ctx, diplomaId, username, school, study, first_name, last_name) {
+    async createDiploma(ctx, username, school, study, first_name, last_name) {
         console.info('============= START : Create Diploma ===========');
-
-        // const IDS_bytes = await ctx.stub.getState('IDS'); // get the car from chaincode state
-        // const IDS_String = IDS_bytes.toString();
-        // const IDS_Json = JSON.parse(IDS_String);
-        //
-        // console.log("Priting IDS as different objets");
-        // console.log(IDS_String);
-        // console.log(IDS_Json);
-        //
-        // const idDiplomas = IDS_Json.idDiplomas;
-        // console.log(`Got id diplomas with ${idDiplomas} while id from client is ${diplomaId}`);
-        //
-        // const new_IDS = {
-        //     idCars: IDS_Json.idCars,
-        //     idDiplomas: idDiplomas++,
-        //     idGrades: idGrades,
-        // };
-        // console.log(`New IDS to blockchain is ${new_IDS.toString()}`);
-        // await ctx.stub.putState('IDS', Buffer.from(JSON.stringify(new_IDS)));
 
         const newDiplomaId = await this.idIncremental(ctx, 'diploma');
 
-        console.log("GOT UPGRADED, THIS IS FINAL VERSION");
         const newDiploma = {
             type: 'diploma',
             username: username,
@@ -267,8 +247,10 @@ class FabCar extends Contract {
         console.info('============= END : Create Diploma ===========');
     }
 
-    async createGrade(ctx, gradeId, username, school, course, grade, first_name, last_name) {
+    async createGrade(ctx, username, school, course, grade, first_name, last_name) {
         console.info('============= START : Create Grade ===========');
+
+        const newGradeId = await this.idIncremental(ctx, 'grade');
 
         const newGrade = {
             type: 'grade',
@@ -279,7 +261,7 @@ class FabCar extends Contract {
             first_name: first_name,
             last_name: last_name,
         };
-        await ctx.stub.putState(gradeId, Buffer.from(JSON.stringify(newGrade)));
+        await ctx.stub.putState('GRADE'+newGradeId, Buffer.from(JSON.stringify(newGrade)));
         await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(newGrade)));
         console.info('============= END : Create Grade ===========');
     }

@@ -171,6 +171,20 @@ module.exports = {
 
 			bridgeSubject.subscribe(subject);
 
+
+			/*  ****** TODO ******
+				* Finding a way of calling specific smartcontract with specific attributes from a 
+				DataStreams
+				* Need to know if this Stream will be the same as the datastream from the query/push data
+
+				* Specify "smartcontract" name
+				* Specify smartcontract attributes
+				--> Everything has to be modular and fit any application
+
+
+			*/
+
+
 			querySubject = new Subject();
 			querySubject.subscribe({
 				next(value) {

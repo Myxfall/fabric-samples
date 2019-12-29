@@ -350,6 +350,74 @@ class FabCar extends Contract {
         }
     }
 
+    async queryAllDiplomas(ctx) {
+        const startKey = 'DIPLOMA0';
+        const endKey = 'DIPLOMA999';
+
+        const iterator = await ctx.stub.getStateByRange(startKey, endKey);
+        console.log(iterator);
+
+        const allResults = [];
+        while (true) {
+            const res = await iterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                console.log(res.value.value.toString('utf8'));
+
+                const Key = res.value.key;
+                let Record;
+                try {
+                    Record = JSON.parse(res.value.value.toString('utf8'));
+                } catch (err) {
+                    console.log(err);
+                    Record = res.value.value.toString('utf8');
+                }
+                allResults.push({ Key, Record });
+            }
+            if (res.done) {
+                console.log('end of data');
+                await iterator.close();
+                console.info(allResults);
+                await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify({ hello: "Hello" })));
+                return JSON.stringify(allResults);
+            }
+        }
+    }
+
+    async queryAllGrades(ctx) {
+        const startKey = 'GRADE0';
+        const endKey = 'GRADE999';
+
+        const iterator = await ctx.stub.getStateByRange(startKey, endKey);
+        console.log(iterator);
+
+        const allResults = [];
+        while (true) {
+            const res = await iterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                console.log(res.value.value.toString('utf8'));
+
+                const Key = res.value.key;
+                let Record;
+                try {
+                    Record = JSON.parse(res.value.value.toString('utf8'));
+                } catch (err) {
+                    console.log(err);
+                    Record = res.value.value.toString('utf8');
+                }
+                allResults.push({ Key, Record });
+            }
+            if (res.done) {
+                console.log('end of data');
+                await iterator.close();
+                console.info(allResults);
+                await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify({ hello: "Hello" })));
+                return JSON.stringify(allResults);
+            }
+        }
+    }
+
     async queryAllData(ctx) {
         const startDiploma = 'DIPLOMA0';
         const endDiploma = 'DIPLOMA20';

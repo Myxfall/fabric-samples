@@ -99,9 +99,12 @@ module.exports = {
 			console.log("Running reactiveProxy with contracts : ", querySmartContracts);
 			for (var contractIndex in querySmartContracts) {
 				const smartContractName = querySmartContracts[contractIndex];
-				const result = await contract.evaluateTransaction(smartContractName);
+				const result = await contract.evaluateTransaction.apply(contract, smartContractName);
+
+				//TODO: should map the structure of the returning JSON, this could also change
 
 				var result_json = JSON.parse(result.toString());
+				console.log("got result from blockchain with", result_json)
 				for (var elem in result_json) {
 					const data = {
 						key: result_json[elem]["Key"],

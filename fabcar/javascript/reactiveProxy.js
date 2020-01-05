@@ -65,11 +65,11 @@ module.exports = {
 				new_json.transactionId = transactionId;
 
 				var sending_json = {
-					key:"random",
-					record: new_json
+					Key:"random",
+					Record: new_json
 				}
 
-				console.log(sending_json.record);
+				console.log(sending_json);
 
 				console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
 				console.log('************************************ End Trade Event ************************************\n');
@@ -104,14 +104,14 @@ module.exports = {
 				//TODO: should map the structure of the returning JSON, this could also change
 
 				var result_json = JSON.parse(result.toString());
-				console.log("got result from blockchain with", result_json)
-				for (var elem in result_json) {
-					const data = {
-						key: result_json[elem]["Key"],
-						record: result_json[elem]["Record"],
-					};
-					console.log(data);
-					subject.next(Buffer.from(JSON.stringify(data)));
+				if (Array.isArray(result_json)) {
+					for (var elem in result_json) {
+						console.log("Object nexted is : ", result_json[elem]);
+						subject.next(Buffer.from(JSON.stringify(result_json[elem])));
+					}
+				} else {
+						console.log("Object nexted is : ", result_json);
+						subject.next(Buffer.from(JSON.stringify(result_json)));
 				}
 			}
 

@@ -42,8 +42,9 @@ async function main() {
 
         const all_data = ["queryAllData"];
         const query_car = ["queryCar", "CAR4"];
+        const all_diplomas = ["queryAllDiplomas"];
 
-        const result = await contract.evaluateTransaction.apply(contract, query_car);
+        const result = await contract.evaluateTransaction.apply(contract, all_data);
         //const result = await contract.submitTransaction('idIncremental', 'diploma');
         //const tx_data = await contract.submitTransaction('createDiploma', 'DIPLOMA10', 'maxromai', 'VUB', 'IT', 'Max', 'ROMAIN');
 

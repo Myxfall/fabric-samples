@@ -47,6 +47,33 @@ module.exports = {
 
 			});
 
+			// ===== TEST GETTING BLOCKS HISTORY =====
+			console.log("===== TESTING BLOCKS =====");
+			const channel = network.getChannel();
+			const blockchainInfo = await channel.queryInfo();
+
+			var historyBlocks = [];
+			for (var blockNumber = 0; blockNumber < (blockchainInfo.height.low); blockNumber++) {
+				historyBlocks.push(
+					await channel.queryBlock(blockNumber)
+				)
+			}
+			console.log(historyBlocks);
+
+			console.log("===== END TESTING =====\n");
+
+			/*
+
+				Should provide a list of full blocks from the blockchain on a stream provided to the client
+				// See function : <async> queryInfo(target, useAdmin) followed by bunch of <async> queryBlockByHash(blockHash, target, useAdmin, skipDecode)
+				// to recompose the history of blocks
+
+				The idea here would be the following:
+				First call the "queryInfo" to get a "blockchainInfo" composed of the height, number of blocks, of the blockchain, current hash block and previous
+				Then loop over the number of block and build the history of blocks
+
+			*/
+
 			await contract.addContractListener('listener_message_sent','sent', (err, event, blockNumber, transactionId, status) => {
 				if (err) {
 					console.error(err);

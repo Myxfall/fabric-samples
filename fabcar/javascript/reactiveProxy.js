@@ -1,4 +1,4 @@
-const { range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
+const { from, range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
 const { map, filter, take, delay, toArray, merge } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 const util = require('util');
@@ -17,6 +17,84 @@ const channeljs = require('./channel');
 const invokejs = require('./invoke');
 
 module.exports = {
+
+	getMainStream: async function() {
+		try {
+			// Create a new gateway for connecting to our peer node.
+			gateway = await connectionjs.gatewayConnection('user1');
+			// Get the network (channel) our contract is deployed to.
+			network = await channeljs.getChannel(gateway, 'mychannel');
+			// Get the contract from the network.
+			contract = await channeljs.getContract(network, 'fabcar');
+
+			moduleStream = new Subject();
+			moduleStream.subscribe(
+				//Maybe find a way of handling the promise/wait a bit better
+				async (request) => {
+					console.log("----- GOT QUERY FROM APPLICATION -----");
+
+					switch (request.type) {
+						case "query_blockchain":
+							console.log("\t -> querying the blockchain by calling contract");
+
+							const smartContractName = request.contract_name;
+							const smartContractArgs = request.args;
+							const contractConcat = [smartContractName].concat(smartContractArgs)
+							
+							const contractResult = await contract.evaluateTransaction.apply(contract, contractConcat)
+							const contractResultPARSED = JSON.parse(contractResult.toString());
+							console.log(contractResultPARSED);
+							// request.args.subscribe({
+							// 	next(value) {
+							// 		console.log("\t\t" + value);
+							// 	}
+							// })
+
+							break;
+						case "listen_blockchain":
+							console.log("\t -> Add a new listener on the blockchain and retrieve new stream");
+
+
+
+							break;
+						case "block_history":
+							console.log("\t -> Get the blocks history of the blockchain as well as a listerner for new blocks");
+
+
+
+						default:
+							console.log("***** The request is not defined by the module *****");
+					}
+
+					/* ===== REACTIVE LOGIC ======
+
+						The logic of the main stream of the modul will happen here
+						Meaning the different "queries" will arrive there and will be
+						treated depending on the data they are asking.
+
+						SOLUTION1: The simple solution is to encapsulate the query inside
+						some kind of struct (JSON) with a type attribute predefined by the application.
+						I can then just sort by this type and execute whatever is needed by the query.
+
+						TYPES:
+							* query_blockchain: Data from the blockchain.
+							could be either one small data, or a bunch of information
+
+							* listen_blockchain: A listener installed on the blockchain used to
+							get new information from the blockchain
+
+							* block_history: A mix of getting information from the blockchain
+							and a listener that listens the new blocks added by the blockchain.
+					*/
+				}
+			);
+
+			return moduleStream;
+
+		} catch (e) {
+			console.log("error with something");
+		}
+	},
 	getProxies: async function(querySmartContracts, eventListeners) {
 		try {
 			// Create a new gateway for connecting to our peer node.

@@ -1,4 +1,4 @@
-const { from, range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
+const { of, from, range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
 const { map, filter, take, delay, toArray, merge } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 const util = require('util');
@@ -34,21 +34,42 @@ module.exports = {
 					console.log("----- GOT QUERY FROM APPLICATION -----");
 
 					switch (request.type) {
+						case "specific_test":
+							console.log("\t -> TESTING CASE");
+							request.args.subscribe({
+								next(value) {
+									console.log(value);
+								}
+							})
+
+							break;
 						case "query_blockchain":
 							console.log("\t -> querying the blockchain by calling contract");
 
 							const smartContractName = request.contract_name;
 							const smartContractArgs = request.args;
 							const contractConcat = [smartContractName].concat(smartContractArgs)
-							
+
 							const contractResult = await contract.evaluateTransaction.apply(contract, contractConcat)
 							const contractResultPARSED = JSON.parse(contractResult.toString());
-							console.log(contractResultPARSED);
-							// request.args.subscribe({
-							// 	next(value) {
-							// 		console.log("\t\t" + value);
-							// 	}
-							// })
+							//console.log(contractResultPARSED);
+
+							var obs;
+							if (Array.isArray(contractResultPARSED)) {
+								console.log("*** Results is list, multiple object")
+
+								obs = from(contractResultPARSED);
+							} else {
+								console.log("*** Results not List, one simple object")
+								obs = of(contractResultPARSED);
+							}
+							// TODO: should send new observable to the server
+							// as an answer. So maybe encapsulate it in a JSON
+							obs.subscribe({
+								next(value) {
+									console.log(value);
+								}
+							})
 
 							break;
 						case "listen_blockchain":
@@ -60,10 +81,39 @@ module.exports = {
 						case "block_history":
 							console.log("\t -> Get the blocks history of the blockchain as well as a listerner for new blocks");
 
+							const channel = network.getChannel();
+							const blockchainInfo = await channel.queryInfo();
 
+							var blockhistoryStream = new ReplaySubject();
+							for (var blockNumber = 0; blockNumber < (blockchainInfo.height.low); blockNumber++) {
+								blockhistoryStream.next(
+									await channel.queryBlock(blockNumber)
+								)
+							}
+							const listener = await network.addBlockListener('my-block-listener', (err, block) => {
+								if (err) {
+									console.log(err);
+									return;
+								}
+								console.log('\n*************** start block header **********************')
+								console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
+								console.log('*************** end block header **********************\n')
 
+								blockhistoryStream.next(Buffer.from(JSON.stringify(block)));
+							});
+
+							//*** TESTING PURPOSE
+							blockhistoryStream.subscribe({
+								next(value) {
+									console.log("Value from the history block stream");
+									console.log(value);
+								}
+							})
+
+							break;
 						default:
 							console.log("***** The request is not defined by the module *****");
+							break;
 					}
 
 					/* ===== REACTIVE LOGIC ======
@@ -124,21 +174,6 @@ module.exports = {
 				blocksSubject.next(Buffer.from(JSON.stringify(block)));
 
 			});
-
-			// ===== TEST GETTING BLOCKS HISTORY =====
-			console.log("===== TESTING BLOCKS =====");
-			const channel = network.getChannel();
-			const blockchainInfo = await channel.queryInfo();
-
-			var historyBlocks = [];
-			for (var blockNumber = 0; blockNumber < (blockchainInfo.height.low); blockNumber++) {
-				historyBlocks.push(
-					await channel.queryBlock(blockNumber)
-				)
-			}
-			console.log(historyBlocks);
-
-			console.log("===== END TESTING =====\n");
 
 			/*
 

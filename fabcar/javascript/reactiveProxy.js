@@ -43,6 +43,16 @@ module.exports = {
 							})
 
 							break;
+
+						case "invoke_blockchain":
+							console.log("\t -> Invoke blockchain by sending you data to network");
+
+							// Invoke submit contract from invokejs module;
+
+							invokejs.main(contract, request);
+
+							break;
+
 						case "query_blockchain":
 							console.log("\t -> querying the blockchain by calling contract");
 
@@ -75,7 +85,45 @@ module.exports = {
 						case "listen_blockchain":
 							console.log("\t -> Add a new listener on the blockchain and retrieve new stream");
 
+							var listening_subject = new ReplaySubject();
 
+							await contract.addContractListener('listener_message_sent', request.eventName, (err, event, blockNumber, transactionId, status) => {
+								if (err) {
+									console.error(err);
+									return;
+								}
+
+								//convert event to something we can parse
+								event = event.payload.toString();
+								event = JSON.parse(event)
+
+								console.log(`\n************************************ Start Trade Event ************************************`);
+
+								var new_json = event;
+								new_json.status = status;
+								new_json.blockNumber = blockNumber;
+								new_json.transactionId = transactionId;
+
+								var sending_json = {
+									Key:"random",
+									Record: new_json
+								}
+
+								console.log(sending_json);
+
+								console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
+								console.log('************************************ End Trade Event ************************************\n');
+
+								listening_subject.next(Buffer.from(JSON.stringify(sending_json)));
+							});
+
+							listening_subject.subscribe({
+								next(value) {
+									console.log("----- Listening events : got new data from blockchain");
+									const new_value = JSON.parse(value);
+									console.log(new_value);
+								}
+							})
 
 							break;
 						case "block_history":
@@ -99,7 +147,8 @@ module.exports = {
 								console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
 								console.log('*************** end block header **********************\n')
 
-								blockhistoryStream.next(Buffer.from(JSON.stringify(block)));
+								//blockhistoryStream.next(Buffer.from(JSON.stringify(block)));
+								blockhistoryStream.next(block);
 							});
 
 							//*** TESTING PURPOSE

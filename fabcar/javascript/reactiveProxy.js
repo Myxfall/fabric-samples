@@ -16,7 +16,140 @@ const channeljs = require('./channel');
 // This invokes the smart contracts on hyperledger fabric
 const invokejs = require('./invoke');
 
+var gateway;
+var network;
+var contract;
+
 module.exports = {
+	setupConnexion: async function(setup_json) {
+		try {
+			// Create a new gateway for connecting to our peer node.
+			gateway = await connectionjs.gatewayConnection(setup_json.user);
+			// Get the network (channel) our contract is deployed to.
+			network = await channeljs.getChannel(gateway, setup_json.channel);
+			// Get the contract from the network.
+			contract = await channeljs.getContract(network, setup_json.contract);
+
+			return {
+				gateway: gateway,
+				network: network,
+				contract: contract
+			};
+
+		} catch (e) {
+			console.log("***** Error during SETUP CONNEXION *****");
+		}
+	},
+	transactionProxy: function(proxy) {
+		try {
+			transactionStream = new Subject()
+			transactionStream.subscribe({
+				next(value) {
+					console.log("*** TransactionProxy: Sending new value to blockchain ***");
+					invokejs.main(proxy.contract, value);
+				},
+				error(err) {
+					console.log("*** TransactionProxy: error submitting value to blockchain***");
+					console.log(err);
+				},
+				complete() {
+					console.log("*** TransactionProxy COMPLETED ***");
+				}
+			});
+
+			return transactionStream;
+		} catch (e) {
+			console.log("***** Error during initialisation of TransactionProxy *****");
+		}
+	},
+	dataProxy: async function(proxy, request) {
+		try {
+			const smartContractName = request.contract_name;
+			const smartContractArgs = request.args;
+			const contractConcat = [smartContractName].concat(smartContractArgs)
+
+			const contractResult = await contract.evaluateTransaction.apply(proxy.contract, contractConcat)
+			const contractResultPARSED = JSON.parse(contractResult.toString());
+
+			var dataStream;
+			if (Array.isArray(contractResultPARSED)) {
+				dataStream = from(contractResultPARSED);
+			} else {
+				dataStream = of(contractResultPARSED);
+			}
+
+			return dataStream;
+		} catch (e) {
+			console.log("***** Error during initialisation of DataProxy *****");
+		}
+	},
+	eventProxy: async function(proxy, eventName) {
+		try {
+			var eventStream = new ReplaySubject();
+
+			await proxy.contract.addContractListener('listener_message_sent', eventName, (err, event, blockNumber, transactionId, status) => {
+				if (err) {
+					console.error(err);
+					return;
+				}
+
+				//convert event to something we can parse
+				event = event.payload.toString();
+				event = JSON.parse(event)
+
+				console.log(`\n************************************ Start Trade Event ************************************`);
+
+				var new_json = event;
+				new_json.status = status;
+				new_json.blockNumber = blockNumber;
+				new_json.transactionId = transactionId;
+
+				var sending_json = {
+					Key:"random",
+					Record: new_json
+				}
+
+				console.log(sending_json);
+
+				console.log(`Block Number: ${blockNumber} Transaction ID: ${transactionId} Status: ${status}`);
+				console.log('************************************ End Trade Event ************************************\n');
+
+				eventStream.next(Buffer.from(JSON.stringify(sending_json)));
+			});
+
+			return eventStream.asObservable();
+		} catch (e) {
+			console.log("***** Error during initialisation of DataProxy *****");
+		}
+	},
+	blocksProxy: async function(proxy) {
+		try {
+			const channel = proxy.network.getChannel();
+			const blockchainInfo = await channel.queryInfo();
+
+			var blockhistoryStream = new ReplaySubject();
+			for (var blockNumber = 0; blockNumber < (blockchainInfo.height.low); blockNumber++) {
+				blockhistoryStream.next(
+					await channel.queryBlock(blockNumber)
+				)
+			}
+			const listener = await network.addBlockListener('my-block-listener', (err, block) => {
+				if (err) {
+					console.log(err);
+					return;
+				}
+				console.log('\n*************** start block header **********************')
+				console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
+				console.log('*************** end block header **********************\n')
+
+				blockhistoryStream.next(block);
+			});
+
+			return blockhistoryStream.asObservable();
+		} catch (e) {
+			console.log("***** Error during initialisation of DataProxy *****");
+		}
+	},
 
 	getMainStream: async function() {
 		try {

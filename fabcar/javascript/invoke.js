@@ -40,9 +40,17 @@ module.exports = {
             //const tx_data = await contract.submitTransaction('createRecord', res_json);
 
             // Try to call the submitTransaction with dynamic attributes, meaning you dont know them before.
-            await contract.submitTransaction.apply(contract, args_array);
+            console.log("MMMMMMMM SUBMIT TRANSACITON TRY CATCH TEST MMMMMMMM");
+            try {
+                await contract.submitTransaction.apply(contract, args_array);
+                console.log('Transaction has been submitted');
+            } catch (e) {
+                console.log("===> Error submitting TX with error : ");
+                console.log(e);
+            } finally {
+                console.log("---> finish submitting transaction");
+            }
 
-            console.log('Transaction has been submitted');
 
             // Disconnect from the gateway.
             // await gateway.disconnect();

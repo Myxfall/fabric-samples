@@ -81,6 +81,7 @@ module.exports = {
 			return dataStream;
 		} catch (e) {
 			console.log("***** Error during initialisation of DataProxy *****");
+			console.log(e);
 		}
 	},
 	eventProxy: async function(proxy, eventName) {
@@ -148,6 +149,28 @@ module.exports = {
 			return blockhistoryStream.asObservable();
 		} catch (e) {
 			console.log("***** Error during initialisation of DataProxy *****");
+		}
+	},
+	testBlocks: function(proxy) {
+		try {
+			const testStream = new ReplaySubject();
+
+			this.testCall(testStream, proxy);
+
+			return testStream.asObservable();
+		} catch (e) {
+			console.log("ERROR");
+			console.log(e);
+		}
+	},
+	testCall: async function(stream, proxy) {
+		const channel = proxy.network.getChannel();
+		const blockchainInfo = await channel.queryInfo();
+
+		for (var blockNumber = 0; blockNumber < (blockchainInfo.height.low); blockNumber++) {
+			stream.next(
+				await channel.queryBlock(blockNumber)
+			)
 		}
 	},
 

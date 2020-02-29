@@ -6,11 +6,9 @@
 const connectionjs = require('./connection');
 const channeljs = require('./channel');
 module.exports = {
-    main: async function main(contract, make) {
+    main: async function(contract, make) {
         try {
             var res_json = JSON.stringify(make);
-            console.log("\nInvoke Query with ");
-            console.log(res_json);
 
             // TODO: json example build here. This JSON structure will be send to the network.
             // Need to make this json structure being able to be send with the TX arguments
@@ -40,15 +38,13 @@ module.exports = {
             //const tx_data = await contract.submitTransaction('createRecord', res_json);
 
             // Try to call the submitTransaction with dynamic attributes, meaning you dont know them before.
-            console.log("MMMMMMMM SUBMIT TRANSACITON TRY CATCH TEST MMMMMMMM");
             try {
                 await contract.submitTransaction.apply(contract, args_array);
                 console.log('Transaction has been submitted');
             } catch (e) {
                 console.log("===> Error submitting TX with error : ");
                 console.log(e);
-            } finally {
-                console.log("---> finish submitting transaction");
+                throw "============ ERROR THROWING TESTING ========";
             }
 
 
@@ -57,7 +53,7 @@ module.exports = {
 
         } catch (error) {
             console.error(`Failed to submit transaction: ${error}`);
-            process.exit(1);
+            throw error
         }
     }
 };

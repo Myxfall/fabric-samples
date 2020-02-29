@@ -1,5 +1,5 @@
-const { of, from, range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
-const { map, filter, take, delay, toArray, merge } = require("rxjs/operators");
+const { throwError, of, from, range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
+const { map, catchError, filter, take, delay, toArray, merge } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 const util = require('util');
 
@@ -43,26 +43,123 @@ module.exports = {
 	transactionProxy: function(proxy) {
 		try {
 			transactionStream = new Subject()
-			transactionStream.subscribe({
-				next(value) {
+			transactionStream
+			.pipe(
+				catchError(err =>  {
+					console.log("====== Handling error and rethrow it ======");
+					console.log(err);
+					return throwError(err);
+				})
+			)
+			.subscribe(
+				value => {
 					console.log("*** TransactionProxy: Sending new value to blockchain ***");
-					invokejs.main(proxy.contract, value);
+					try {
+						this.transactionProxyContactBlockchain(proxy.contract, value, transactionStream);
+					} catch (e) {
+							console.log("======catching erorr in subscibre to see ========")
+					}
+					//invokejs.main(proxy.contract, value);
 				},
-				error(err) {
+				err => {
 					console.log("*** TransactionProxy: error submitting value to blockchain***");
 					console.log(err);
 				},
-				complete() {
+				() => {
 					console.log("*** TransactionProxy COMPLETED ***");
 				}
-			});
+			);
 
 			return transactionStream;
 		} catch (e) {
 			console.log("***** Error during initialisation of TransactionProxy *****");
+			console.log(e);
 		}
 	},
-	dataProxy: async function(proxy, request) {
+	transactionProxyContactBlockchain: async function(proxy, make, txStream) {
+		try {
+			var res_json = JSON.stringify(make);
+			var args_array = [make.contractName];
+            Object.keys(make.args).map((arg) => {
+                args_array.push(make.args[arg]);
+            })
+
+			try {
+                await contract.submitTransaction.apply(contract, args_array);
+                console.log('Transaction has been submitted');
+            } catch (e) {
+                console.log("===> Error submitting TX with error : ");
+                console.log(e);
+                throw "============ ERROR THROWING TESTING ========";
+            }
+		} catch (e) {
+			console.log("\n***** Error during initialisation of TransactionProxy *****");
+			console.log("***** (step2) : Error filling data to TransactionProxy *****");
+			console.log(e);
+		}
+	},
+	sendTransaction: async function(proxy, make) {
+		/*const txStream = new Subject();
+
+		this.sendTransactionContactBlockchain(proxy, make, txStream);
+
+		return txStream.asObservable();*/
+
+		const observable = new Observable(async (subscriber) => {
+			var res_json = JSON.stringify(make);
+			var args_array = [make.contractName];
+			Object.keys(make.args).map((arg) => {
+				args_array.push(make.args[arg]);
+			})
+
+			try {
+				console.log("===== TRansaction proxy CAlling TX ======");
+				const something = await contract.submitTransaction.apply(contract, args_array);
+				console.log("results");
+				console.log(something);
+				subscriber.next("succeed");
+			} catch (e) {
+				console.log("===== Error during sendTransaction =====");
+				console.log(e);
+				subscriber.error(e);
+			}
+		})
+
+		return observable;
+	},
+	sendTransactionContactBlockchain: async function(proxy, make) {
+		var res_json = JSON.stringify(make);
+		var args_array = [make.contractName];
+		Object.keys(make.args).map((arg) => {
+			args_array.push(make.args[arg]);
+		})
+
+		try {
+			console.log("===== TRansaction proxy CAlling TX ======");
+			await contract.submitTransaction.apply(contract, args_array);
+		} catch (e) {
+			console.log("===== Error during sendTransaction =====");
+			console.log(e);
+			throw new Error("Something happened");
+			throw throwError(e);
+			throw e
+		}
+		return "succeed"
+	},
+	dataProxy: function(proxy, request) {
+		try {
+			const dataStream = new ReplaySubject();
+
+			this.dataProxyContactBlockchain(proxy, dataStream, request);
+
+			return dataStream.asObservable();
+		} catch (e) {
+			console.log("***** Error during initialisation of DataProxy *****");
+			console.log("***** (step1) : Error building the DataProxy stream *****");
+			console.log(e);
+		}
+	},
+	dataProxyContactBlockchain: async function(proxy, dataStream, request) {
 		try {
 			const smartContractName = request.contract_name;
 			const smartContractArgs = request.args;
@@ -71,29 +168,39 @@ module.exports = {
 			const contractResult = await contract.evaluateTransaction.apply(proxy.contract, contractConcat)
 			const contractResultPARSED = JSON.parse(contractResult.toString());
 
-			var dataStream;
 			if (Array.isArray(contractResultPARSED)) {
-				dataStream = from(contractResultPARSED);
+				dataObs = from(contractResultPARSED);
+				dataObs.subscribe(dataStream)
 			} else {
-				dataStream = of(contractResultPARSED);
+				dataObs = of(contractResultPARSED);
+				dataObs.subscribe(dataStream);
 			}
-
-			return dataStream;
 		} catch (e) {
-			console.log("***** Error during initialisation of DataProxy *****");
+			console.log("\n***** Error during initialisation of DataProxy *****");
+			console.log("***** (step2) : Error filling data to DataProxy *****");
 			console.log(e);
 		}
 	},
-	eventProxy: async function(proxy, eventName) {
+	eventProxy: function(proxy, eventName) {
 		try {
 			var eventStream = new ReplaySubject();
 
+			this.eventProxyContactBlockchain(proxy, eventStream, eventName);
+
+			return eventStream.asObservable();
+		} catch (e) {
+			console.log("\n***** Error during initialisation of EventProxy *****");
+			console.log("***** (step1) : Error building EventProxy *****");
+			console.log(e);
+		}
+	},
+	eventProxyContactBlockchain: async function(proxy, eventStream, eventName) {
+		try {
 			await proxy.contract.addContractListener('listener_message_sent', eventName, (err, event, blockNumber, transactionId, status) => {
 				if (err) {
 					console.error(err);
 					return;
 				}
-
 				//convert event to something we can parse
 				event = event.payload.toString();
 				event = JSON.parse(event)
@@ -117,24 +224,41 @@ module.exports = {
 
 				eventStream.next(Buffer.from(JSON.stringify(sending_json)));
 			});
-
-			return eventStream.asObservable();
 		} catch (e) {
-			console.log("***** Error during initialisation of DataProxy *****");
+			console.log("\n***** Error during initialisation of EventProxy *****");
+			console.log("***** (step2) : Error filling data to EventProxy *****");
+			console.log(e);
 		}
 	},
-	blocksProxy: async function(proxy) {
+	blocksProxy: function(proxy) {
 		try {
+			const blockhistoryStream = new ReplaySubject();
+
+			// Function call to fill blocks history stream with blocks infos.
+			// Done asynhcronously
+			this.blocksProxyContactBlockchain(proxy, blockhistoryStream);
+
+			return blockhistoryStream.asObservable();
+		} catch (e) {
+			console.log("***** Error during initialisation of BlocksProxy *****");
+			console.log("***** (step1) : Error building BlocksProxy *****");
+			console.log(e);
+		}
+	},
+	blocksProxyContactBlockchain: async function(proxy, blockStream) {
+		try {
+			// Contact blockchain to retrieve blocks infos
 			const channel = proxy.network.getChannel();
 			const blockchainInfo = await channel.queryInfo();
 
-			var blockhistoryStream = new ReplaySubject();
+			// Loop over blocks number to retrieve block infos from blockchain
 			for (var blockNumber = 0; blockNumber < (blockchainInfo.height.low); blockNumber++) {
-				blockhistoryStream.next(
+				blockStream.next(
 					await channel.queryBlock(blockNumber)
 				)
 			}
-			const listener = await network.addBlockListener('my-block-listener', (err, block) => {
+			// Add a listener hook on the blockchain blocks
+			const listener = await proxy.network.addBlockListener('my-block-listener', (err, block) => {
 				if (err) {
 					console.log(err);
 					return;
@@ -143,12 +267,12 @@ module.exports = {
 				console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
 				console.log('*************** end block header **********************\n')
 
-				blockhistoryStream.next(block);
+				blockStream.next(block);
 			});
-
-			return blockhistoryStream.asObservable();
 		} catch (e) {
-			console.log("***** Error during initialisation of DataProxy *****");
+			console.log("\n***** Error during initialisation of BlocksProxy *****");
+			console.log("***** (step2) : Error filling data to BlocksProxy *****");
+			console.log(e);
 		}
 	},
 	testBlocks: function(proxy) {

@@ -148,11 +148,19 @@ module.exports = {
 	},
 	dataProxy: function(proxy, request) {
 		try {
-			const dataStream = new ReplaySubject();
+			/*const dataStream = new ReplaySubject();
 
 			this.dataProxyContactBlockchain(proxy, dataStream, request);
 
-			return dataStream.asObservable();
+			return dataStream.asObservable();*/
+
+			const smartContractName = request.contract_name;
+			const smartContractArgs = request.args;
+			const contractConcat = [smartContractName].concat(smartContractArgs)
+
+			return from(contract.evaluateTransaction.apply(proxy.contract, contractConcat)).pipe(
+				map(stream => JSON.parse(stream.toString()))
+			);
 		} catch (e) {
 			console.log("***** Error during initialisation of DataProxy *****");
 			console.log("***** (step1) : Error building the DataProxy stream *****");

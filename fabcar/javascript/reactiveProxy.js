@@ -1,5 +1,5 @@
 const { throwError, of, from, range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
-const { map, catchError, filter, take, delay, toArray, merge } = require("rxjs/operators");
+const { map,mergeMap, flatMap, catchError, filter, take, delay, toArray, merge } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 const util = require('util');
 
@@ -159,7 +159,7 @@ module.exports = {
 			const contractConcat = [smartContractName].concat(smartContractArgs)
 
 			return from(contract.evaluateTransaction.apply(proxy.contract, contractConcat)).pipe(
-				map(stream => JSON.parse(stream.toString()))
+				flatMap(stream => from(JSON.parse(stream.toString())))
 			);
 		} catch (e) {
 			console.log("***** Error during initialisation of DataProxy *****");

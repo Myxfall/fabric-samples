@@ -243,7 +243,7 @@ class FabCar extends Contract {
             last_name: last_name,
         };
         await ctx.stub.putState('DIPLOMA'+newDiplomaId, Buffer.from(JSON.stringify(newDiploma)));
-        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(newDiploma)));
+        await ctx.stub.setEvent('newDiploma', Buffer.from(JSON.stringify(newDiploma)));
         console.info('============= END : Create Diploma ===========');
     }
 
@@ -262,7 +262,7 @@ class FabCar extends Contract {
             last_name: last_name,
         };
         await ctx.stub.putState('GRADE'+newGradeId, Buffer.from(JSON.stringify(newGrade)));
-        await ctx.stub.setEvent('sent', Buffer.from(JSON.stringify(newGrade)));
+        await ctx.stub.setEvent('newGrade', Buffer.from(JSON.stringify(newGrade)));
         console.info('============= END : Create Grade ===========');
     }
 

@@ -1,5 +1,5 @@
-const { throwError, of, from, range, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
-const { map,mergeMap, flatMap, catchError, filter, take, delay, toArray, merge } = require("rxjs/operators");
+const { throwError, of, from, range, merge, fromEvent, interval, timer, Subject, ReplaySubject } = require("rxjs");
+const { map,mergeMap, flatMap, catchError, filter, take, delay, toArray } = require("rxjs/operators");
 const { Observable} = require("rxjs/Observable");
 const util = require('util');
 
@@ -186,6 +186,87 @@ module.exports = {
 		} catch (e) {
 			console.log("\n***** Error during initialisation of DataProxy *****");
 			console.log("***** (step2) : Error filling data to DataProxy *****");
+			console.log(e);
+		}
+	},
+	/*
+		The push continuous query
+		This is premade work to handle future new DSL blockchain related
+
+		It accepts :
+			* select: select fields from the ledger object
+			* from: select the event-name submission
+			* where: pre filter the stream
+	*/
+	pushQuery: async function(proxy, SQL_object) {
+		try {
+				var pushQuerySteam = new ReplaySubject();
+
+				const select = SQL_object.select;
+				const from = SQL_object.from;
+				const where = SQL_object.where;
+
+				console.log(select);
+				console.log(from);
+				console.log(where);
+
+				// TODO: try get already created listener and not creating new one
+				for (eventName in from) {
+					await proxy.contract.addContractListener('listener_message_sent'+eventName, from[eventName], (err, event, blockNumber, transactionId, status) => {
+						if (err) {
+							console.error(err);
+							return;
+						}
+						//convert event to something we can parse
+						event = event.payload.toString();
+						event = JSON.parse(event)
+
+						var sending_json;
+						if (select == "*") {
+							sending_json = event;
+							sending_json.status = status;
+							sending_json.blockNumber = blockNumber;
+							sending_json.transactionId = transactionId;
+						} else {
+							sending_json = {
+								status: status,
+								blockNumber: blockNumber,
+								transactionId: transactionId,
+							}
+							for (var elem in select) {
+								sending_json[select[elem]] = event[select[elem]];
+							}
+						}
+
+						//pushQuerySteam.next(Buffer.from(JSON.stringify(sending_json)));
+						pushQuerySteam.next(sending_json);
+					});
+				}
+
+				return pushQuerySteam.asObservable();
+
+		} catch (e) {
+			console.log("***** Error during initialisation of continuous QueryProxy *****");
+			console.log("***** (step1) : Error building the continuous QueyProx stream *****");
+			console.log(e);
+		}
+	},
+	ppQuery: async function(proxy, SQL_object) {
+		try {
+			const queryStream = await this.pushQuery(proxy, SQL_object);
+			const dataStream = this.dataProxy(proxy, {
+				contract_name: "queryAllDiplomas",
+				args: []
+			});
+
+			return merge(
+				queryStream,
+				dataStream
+			);
+
+		} catch (e) {
+			console.log("***** Error during initialisation of continuous PPProxy *****");
+			console.log("***** (step1) : Error building the continuous PPProxy stream *****");
 			console.log(e);
 		}
 	},

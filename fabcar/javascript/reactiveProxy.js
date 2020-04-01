@@ -212,7 +212,7 @@ module.exports = {
 
 				// TODO: try get already created listener and not creating new one
 				for (eventName in from) {
-					await proxy.contract.addContractListener('listener_message_sent'+eventName, from[eventName], (err, event, blockNumber, transactionId, status) => {
+					await proxy.contract.addContractListener(from[eventName]+Math.random(), from[eventName], (err, event, blockNumber, transactionId, status) => {
 						if (err) {
 							console.error(err);
 							return;
@@ -247,7 +247,7 @@ module.exports = {
 
 		} catch (e) {
 			console.log("***** Error during initialisation of continuous QueryProxy *****");
-			console.log("***** (step1) : Error building the continuous QueyProx stream *****");
+			console.log("***** (step1) : Error building the continuous QueryProx stream *****");
 			console.log(e);
 		}
 	},
@@ -255,7 +255,7 @@ module.exports = {
 		try {
 			const queryStream = await this.pushQuery(proxy, SQL_object);
 			const dataStream = this.dataProxy(proxy, {
-				contract_name: "queryAllDiplomas",
+				contract_name: "queryAllGrades",
 				args: []
 			});
 
@@ -318,6 +318,28 @@ module.exports = {
 			console.log("***** (step2) : Error filling data to EventProxy *****");
 			console.log(e);
 		}
+	},
+	streamProcessing: function(proxy, SQL_object) {
+		const select = SQL_object.select;
+		const from = SQL_object.from;
+		const where = SQL_object.where;
+
+		const mergedStream = merge(...from);
+		const selectedStream = mergedStream.pipe(
+			map((stream_event) => {
+				var sending_json = {};
+				if (select == "*") {
+					sending_json = stream_event;
+				} else {
+					for (var elem in select) {
+						sending_json[select[elem]] = stream_event["Record"][select[elem]];
+					}
+				}
+				return sending_json;
+			})
+		);
+
+		return selectedStream;
 	},
 	blocksProxy: function(proxy) {
 		try {

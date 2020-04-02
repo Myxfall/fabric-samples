@@ -93,11 +93,27 @@ class FabCar extends Contract {
             },
             {
                 type: 'diploma',
-                username: 'maxromai',
+                username: 'ebaroux',
                 school: 'ParisInstiture',
                 study: 'acting',
                 first_name: 'Enya',
                 last_name: 'Baroux',
+            },
+            {
+                type: 'diploma',
+                username: 'maxromai',
+                school: 'ULB',
+                study: 'business&managing',
+                first_name: 'Maximilien',
+                last_name: 'Romain',
+            },
+            {
+                type: 'diploma',
+                username: 'tperale',
+                school: 'VUB',
+                study: 'computer_science',
+                first_name: 'Thomas',
+                last_name: 'Perale',
             },
         ];
         const grades = [
@@ -113,11 +129,29 @@ class FabCar extends Contract {
             {
                 type: 'grade',
                 username: 'maxromai',
-                school: 'VUB',
+                school: 'Chalmers',
                 course: "Project_management",
                 grade: "18",
                 first_name: 'Maximilien',
                 last_name: 'Romain',
+            },
+            {
+                type: 'grade',
+                username: 'tperale',
+                school: 'VUB',
+                course: "Declarative_programming",
+                grade: "12",
+                first_name: 'Thomas',
+                last_name: 'Perale',
+            },
+            {
+                type: 'grade',
+                username: 'strainger1',
+                school: 'VUB',
+                course: "Declarative_programming",
+                grade: "3",
+                first_name: 'Strainger',
+                last_name: 'Name',
             },
         ];
 
@@ -406,7 +440,7 @@ class FabCar extends Contract {
                     console.log(err);
                     Record = res.value.value.toString('utf8');
                 }
-                allResults.push({ Key, Record });
+                allResults.push(Record);
             }
             if (res.done) {
                 console.log('end of data');
@@ -451,6 +485,22 @@ class FabCar extends Contract {
                 return JSON.stringify(allResults);
             }
         }
+    }
+
+    async changeGradeStudent(ctx, studentGradeId, newGrade) {
+        console.info('============= START : changeGradeStudent ===========');
+
+        const gradeAsBytes = await ctx.stub.getState(studentGradeId);
+        if (!gradeAsBytes || gradeAsBytes.length === 0) {
+            throw new Error(`${studentGradeId} does not exist`);
+        }
+        const studentGrade = JSON.parse(gradeAsBytes.toString());
+        studentGrade.grade = newGrade;
+
+        await ctx.stub.putState(studentGradeId, Buffer.from(JSON.stringify(studentGrade)));
+        await ctx.stub.setEvent('changeGrade', Buffer.from(JSON.stringify(studentGrade)));
+
+        console.info('============= END : changeGradeStudent ===========');
     }
 
     async changeCarOwner(ctx, carNumber, newOwner) {

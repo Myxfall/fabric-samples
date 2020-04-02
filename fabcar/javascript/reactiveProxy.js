@@ -253,15 +253,19 @@ module.exports = {
 	},
 	ppQuery: async function(proxy, SQL_object) {
 		try {
-			const queryStream = await this.pushQuery(proxy, SQL_object);
-			const dataStream = this.dataProxy(proxy, {
-				contract_name: "queryAllGrades",
-				args: []
-			});
+			const streamsArray = [];
+			streamsArray.push(await this.pushQuery(proxy, SQL_object));
+
+			for (var static in SQL_object.fromStatic) {
+				console.log("calling contract with : ", SQL_object.fromStatic[static]);
+				streamsArray.push(this.dataProxy(proxy, {
+					contract_name: SQL_object.fromStatic[static],
+					args: []
+				}))
+			}
 
 			return merge(
-				queryStream,
-				dataStream
+				...streamsArray
 			);
 
 		} catch (e) {

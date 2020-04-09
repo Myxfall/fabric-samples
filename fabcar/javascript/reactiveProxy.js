@@ -274,6 +274,37 @@ module.exports = {
 			console.log(e);
 		}
 	},
+	tableProxy: function(proxy, SQL_object) {
+		try {
+			/*
+				from: the stream where the Table is going to be build from
+				groupBy: The structure of the returning json state
+			*/
+			const from = SQL_object.from;
+			const groupBy = SQL_object.groupBy;
+
+			var tableState = {};
+			var tableStream = new ReplaySubject();
+
+			from.subscribe({
+				next(value) {
+					var idName = "";
+					for (elem in groupBy) {
+						idName = idName + value[groupBy[elem]];
+					}
+					tableState[idName] = value;
+					tableStream.next(tableState);
+				}
+			})
+
+			return tableStream.asObservable()
+
+		} catch (e) {
+			console.log("***** Error during initialisation of TableProxy *****");
+			console.log("***** (step1) : Error building the TableProxy stream *****");
+			console.log(e);
+		}
+	},
 	eventProxy: function(proxy, eventName) {
 		try {
 			var eventStream = new ReplaySubject();
